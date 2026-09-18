@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="许超 & 程昱 · 婚礼邀请函">
+  <title>许超 & 程昱 · 婚礼邀请函</title>
+  <link rel="preload" href="assets/fonts/playfair-display-latin-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/great-vibes-latin-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/jost-latin-300.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/noto-serif-sc-subset.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/fonts.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <audio id="bgm" preload="auto" playsinline webkit-playsinline></audio>
+  <button class="audio-toggle" type="button" aria-pressed="false" aria-label="关闭背景音乐" hidden>
+    <span class="audio-toggle__mark" aria-hidden="true">♪</span>
+  </button>
+
+  <main id="app">
+
+    <div class="lumen" aria-hidden="true">
+      <div class="lumen__bloom"></div>
+      <div class="lumen__glow"></div>
+      <div class="lumen__grain"></div>
+    </div>
+
+    <!-- 02 Couple · 底层预留，启缄后显现 -->
+    <section class="couple" id="couple" aria-label="新人介绍">
+      <p class="couple__mark">许超 &amp; 程昱</p>
+    </section>
+
+    <!-- 01 Cover · 序章·叩门 -->
+    <section class="cover cover-section" id="cover" aria-label="婚礼邀请函封面">
+
+      <div class="cover-bg-image" aria-hidden="true"></div>
+
+      <div class="envelope-wrapper">
+        <div class="paper-texture" aria-hidden="true"></div>
+        <div class="cover__emboss cover__emboss--tl" aria-hidden="true"></div>
+        <div class="cover__emboss cover__emboss--br" aria-hidden="true"></div>
+
+        <div class="cover__frame" aria-hidden="true">
+          <span class="cover__corner cover__corner--tl"></span>
+          <span class="cover__corner cover__corner--tr"></span>
+          <span class="cover__corner cover__corner--bl"></span>
+          <span class="cover__corner cover__corner--br"></span>
+        </div>
+
+        <div class="cover__sheet">
+          <div class="cover-content">
+            <div class="cover__lockup">
+              <p class="handwriting-greeting">To our dearest family &amp; friends</p>
+
+              <h1 class="cover__couple">
+                <span class="cover__name" data-config="groom">许 超</span>
+                <span class="cover__amp" aria-hidden="true">&amp;</span>
+                <span class="cover__name" data-config="bride">程 昱</span>
+              </h1>
+
+              <span class="cover__rule" aria-hidden="true"></span>
+
+              <p class="cover__date">
+                <time datetime="2026-11-16" data-config="date">2026 . 11 . 16</time>
+              </p>
+
+              <p class="cover__venue" data-config="venue">陶然居</p>
+              <p class="venue-sub">We cordially invite you to celebrate with us</p>
+            </div>
+
+            <p class="cover__seal-hint">轻触启缄</p>
+          </div>
+        </div>
+
+        <div class="envelope-flap">
+          <div class="cover__flap-plane" aria-hidden="true"></div>
+          <span class="cover__flap-crease" aria-hidden="true"></span>
+          <p class="cover__eyebrow">Save the Date</p>
+          <button class="wax-seal" type="button" aria-label="轻触启缄，开启请柬">
+            <span class="cover__seal-wax" aria-hidden="true">
+              <span class="cover__seal-monogram">X<i>&amp;</i>C</span>
+            </span>
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- 02 Our Story · 暗调流光 · 图文交错 -->
+    <section id="story" class="chapter chapter--story" aria-labelledby="story-title">
+      <h2 id="story-title" class="section-title">OUR STORY</h2>
+      <ol class="timeline" id="timeline">
+        <li class="timeline__node">
+          <div class="timeline__copy">
+            <time class="timeline__date" datetime="2023-12-08">2023.12.08</time>
+            <h3 class="timeline__en">First Glance</h3>
+            <p class="timeline__zh">初遇·轨迹交汇的起点</p>
+          </div>
+          <figure class="timeline__frame timeline__frame--glance">
+            <img
+              src="assets/photos/7bdbbfab505c9f39cfc1f29134bc9ac9.jpg"
+              alt="许超与程昱，初遇的温柔"
+              width="480"
+              height="640"
+              loading="lazy"
+              decoding="async"
+            >
+          </figure>
+        </li>
+        <li class="timeline__node">
+          <div class="timeline__copy">
+            <time class="timeline__date" datetime="2023-12-20">2023.12.20</time>
+            <h3 class="timeline__en">Mutual Resonance</h3>
+            <p class="timeline__zh">共鸣·心意相通的瞬息</p>
+          </div>
+          <figure class="timeline__frame timeline__frame--resonance">
+            <img
+              src="assets/photos/69b726317e5dbdc58b3fa05ded4743fa.jpg"
+              alt="许超与程昱相视牵手"
+              width="480"
+              height="640"
+              loading="lazy"
+              decoding="async"
+            >
+          </figure>
+        </li>
+        <li class="timeline__node">
+          <div class="timeline__copy">
+            <time class="timeline__date" datetime="2025-10-04">2025.10.04</time>
+            <h3 class="timeline__en">The Pledge</h3>
+            <p class="timeline__zh">许诺·向彼此走近的契约</p>
+          </div>
+          <figure class="timeline__frame timeline__frame--arch">
+            <img
+              src="assets/photos/story-01.jpg"
+              alt="许超与程昱在花拱下"
+              width="480"
+              height="600"
+              loading="lazy"
+              decoding="async"
+            >
+          </figure>
+        </li>
+        <li class="timeline__node">
+          <div class="timeline__copy">
+            <time class="timeline__date" datetime="2025-12-18">2025.12.18</time>
+            <h3 class="timeline__en">Boundless Union</h3>
+            <p class="timeline__zh">结契·法律与爱意的双重署名</p>
+          </div>
+          <figure class="timeline__frame timeline__frame--ring">
+            <img
+              src="assets/photos/story-02.jpg"
+              alt="许超与程昱在草地挥手"
+              width="480"
+              height="640"
+              loading="lazy"
+              decoding="async"
+            >
+          </figure>
+        </li>
+        <li class="timeline__node timeline__node--wedding">
+          <div class="timeline__copy">
+            <time class="timeline__date" datetime="2026-11-16">2026.11.16</time>
+            <h3 class="timeline__en">The Celebration</h3>
+            <p class="timeline__zh">永恒·共赴余生的起点</p>
+          </div>
+          <figure class="timeline__frame timeline__frame--celebration">
+            <img
+              src="assets/photos/2ec70a7c7d7f16f02c6e67c323d47a91.jpg"
+              alt="许超与程昱的婚纱大片"
+              width="480"
+              height="640"
+              loading="lazy"
+              decoding="async"
+            >
+          </figure>
+        </li>
+      </ol>
+
+      <!-- 03 Countdown · 倒计时与大日子闭环 -->
+      <aside class="countdown" id="countdown" aria-label="婚礼倒计时">
+        <p class="countdown__kicker">Countdown to our day</p>
+        <p class="countdown__verse">光阴轻叩，只待与你赴约</p>
+
+        <div class="countdown__panel">
+          <span class="countdown__corner countdown__corner--tl" aria-hidden="true"></span>
+          <span class="countdown__corner countdown__corner--tr" aria-hidden="true"></span>
+          <span class="countdown__corner countdown__corner--bl" aria-hidden="true"></span>
+          <span class="countdown__corner countdown__corner--br" aria-hidden="true"></span>
+
+          <div class="countdown__clock" aria-hidden="true">
+            <div class="countdown__unit">
+              <span class="countdown__value" data-unit="days">000</span>
+              <span class="countdown__label">Days</span>
+            </div>
+            <div class="countdown__unit">
+              <span class="countdown__value" data-unit="hours">00</span>
+              <span class="countdown__label">Hrs</span>
+            </div>
+            <div class="countdown__unit">
+              <span class="countdown__value" data-unit="minutes">00</span>
+              <span class="countdown__label">Min</span>
+            </div>
+            <div class="countdown__unit">
+              <span class="countdown__value" data-unit="seconds">00</span>
+              <span class="countdown__label">Sec</span>
+            </div>
+          </div>
+        </div>
+
+        <p class="countdown__status visually-hidden" id="countdown-status"></p>
+
+        <p class="countdown__date">
+          <time datetime="2026-11-16" data-config="countdown-date">2026.11.16</time>
+        </p>
+        <p class="countdown__epilogue">The day we begin forever</p>
+        <p class="countdown__monogram" aria-hidden="true">X <i>&amp;</i> C</p>
+      </aside>
+    </section>
+
+    <!-- 04 Gallery · 叠放相册 -->
+    <section id="gallery" class="chapter chapter--gallery" aria-labelledby="gallery-title">
+      <h2 id="gallery-title" class="section-title">PHOTO GALLERY</h2>
+      <p class="visually-hidden">左右轻扫切换合照，点击正面照片可放大预览。</p>
+
+      <div class="gallery-deck">
+        <div class="gallery-stack" id="gallery-stack" role="group" aria-label="婚纱合照"></div>
+      </div>
+      <p class="gallery-index" id="gallery-index" aria-live="polite"></p>
+    </section>
+
+    <!-- 05 Wishes · 弹幕祝福互动区 -->
+    <section id="wishes" class="chapter chapter--wishes" aria-labelledby="wishes-title">
+      <h2 id="wishes-title" class="section-title">WISHES &amp; BLESSINGS</h2>
+
+      <!-- 弹幕只呈现来宾真实留下的祝福，无预设内容 -->
+      <div class="danmu-container" id="danmu-container" aria-live="polite">
+        <p class="danmu-empty" id="danmu-empty">还没有人留下祝福，等你写下第一句</p>
+      </div>
+
+      <form class="wish-composer" id="wish-form" novalidate>
+        <div class="wish-fields">
+          <label class="wish-field">
+            <span class="wish-field__label">姓名</span>
+            <input
+              class="wish-input"
+              type="text"
+              name="guestName"
+              maxlength="12"
+              autocomplete="name"
+              placeholder="留下您的姓名"
+              required
+            >
+          </label>
+          <label class="wish-field wish-field--message">
+            <span class="wish-field__label">祝福</span>
+            <input
+              class="wish-input"
+              type="text"
+              name="message"
+              maxlength="36"
+              placeholder="写下对新人的祝福"
+              required
+            >
+          </label>
+        </div>
+        <button class="wish-submit-btn" type="submit">送上祝福</button>
+        <p class="wish-hint" id="wish-hint" role="status" hidden></p>
+      </form>
+    </section>
+
+    <!-- 06 Navigation & Venue · 酒店导航与温馨落幕 -->
+    <section id="venue" class="chapter chapter--venue" aria-labelledby="venue-title">
+      <h2 id="venue-title" class="section-title">THE VENUE</h2>
+
+      <div class="venue__folio">
+        <p class="venue__kicker">The Celebration</p>
+        <p class="venue__date">
+          <time datetime="2026-11-16" data-config="venue-date">2026.11.16</time>
+        </p>
+        <p class="venue__occasion">大日子 · 开席</p>
+      </div>
+
+      <div class="venue__place">
+        <p class="venue__hotel" data-config="venue-name">陶然居</p>
+        <address class="venue__address" data-config="venue-address">山东省临沂市兰山区陶然路163号</address>
+        <p class="venue__gate" data-config="venue-gate">请从南门进入</p>
+      </div>
+
+      <div class="venue__wayfinding">
+        <div class="venue__maps">
+          <a
+            class="venue__map"
+            data-nav="amap"
+            rel="noopener"
+            href="https://uri.amap.com/navigation?to=118.342305,35.039017,%E4%B8%B4%E6%B2%82%E9%99%B6%E7%84%B6%E5%B1%85%E5%A4%A7%E9%85%92%E5%BA%97%E5%8D%97%E9%97%A8&amp;mode=car&amp;coordinate=gaode&amp;src=xuchao-chengyu-wedding&amp;callnative=1"
+          >
+            <span class="venue__map-en">Amap</span>
+            <span class="venue__map-zh">高德地图</span>
+          </a>
+          <a
+            class="venue__map"
+            data-nav="qq"
+            rel="noopener"
+            href="https://apis.map.qq.com/uri/v1/marker?marker=coord%3A35.039017%2C118.342305%3Btitle%3A%E4%B8%B4%E6%B2%82%E9%99%B6%E7%84%B6%E5%B1%85%E5%A4%A7%E9%85%92%E5%BA%97%E5%8D%97%E9%97%A8%3Baddr%3A%E5%B1%B1%E4%B8%9C%E7%9C%81%E4%B8%B4%E6%B2%82%E5%B8%82%E5%85%B0%E5%B1%B1%E5%8C%BA%E9%99%B6%E7%84%B6%E8%B7%AF163%E5%8F%B7%E5%8D%97%E9%97%A8&amp;referer=xuchao-chengyu-wedding"
+          >
+            <span class="venue__map-en">Tencent</span>
+            <span class="venue__map-zh">腾讯地图</span>
+          </a>
+        </div>
+
+        <p class="venue__nav-alt">
+          <a class="venue__nav-link" data-nav="copy" href="#venue">复制地址</a>
+        </p>
+
+        <p class="venue__nav-hint" role="status">导航至陶然居大酒店，请从南门进入</p>
+      </div>
+
+      <footer class="venue__close">
+        <span class="venue__rule" aria-hidden="true"></span>
+        <p class="venue__mono" data-config="closing-mono">X &amp; C</p>
+        <p class="venue__wish" data-config="closing-wish">Looking forward to celebrating with you</p>
+      </footer>
+    </section>
+
+  </main>
+
+  <div
+    class="lightbox"
+    id="lightbox"
+    role="dialog"
+    aria-modal="true"
+    aria-hidden="true"
+    aria-labelledby="lightbox-title"
+    inert
+  >
+    <p id="lightbox-title" class="visually-hidden">照片预览</p>
+    <button class="lightbox__close" type="button" aria-label="关闭预览">
+      <span aria-hidden="true">&times;</span>
+    </button>
+    <figure class="lightbox__stage">
+      <img class="lightbox__image" id="lightbox-image" alt="">
+      <figcaption class="lightbox__caption" id="lightbox-caption" hidden></figcaption>
+    </figure>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

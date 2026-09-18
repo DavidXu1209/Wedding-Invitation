@@ -1,0 +1,46 @@
+---
+description: 照片与媒体资源规范
+globs: "**/*.{html,css,js}"
+alwaysApply: false
+---
+
+# 照片规则
+
+## 核心原则
+
+保留真实婚纱照人物身份。照片是最高优先级视觉资产。
+
+**只允许：** 裁切、调色、排版、纹理叠加、光影优化  
+**禁止：** AI 重绘脸部、改变五官/服装/姿态、虚构场景
+
+## 目录结构
+
+```
+assets/
+  photos/     cover.jpg · story-01.jpg · story-02.jpg
+  share/      微信分享图
+  textures/   背景与装饰纹理
+```
+
+## 文件分配
+
+| 文件 | 页面 |
+|------|------|
+| `cover.jpg` | Cover、Share Poster（Gallery 不重复） |
+| `story-01.jpg` | Gallery Chapter I · 誓言 |
+| `story-02.jpg` | Gallery Chapter II · 誓约 |
+
+## 性能
+
+- 列表/轮播使用适中尺寸，原图按需加载
+- 懒加载长列表图片
+- 单张展示图建议 < 500KB
+
+## 配置
+
+- 照片路径与说明在 `js/config.js` 中维护
+- 支持分组与关联日期
+
+## 格式
+
+- 推荐 JPEG / WebP

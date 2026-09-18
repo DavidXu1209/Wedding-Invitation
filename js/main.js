@@ -1,0 +1,1043 @@
+/**
+ * 婚礼邀请函 — 入口脚本
+ * 阶段 1：Cover · 序章·叩门
+ * 阶段 2：Our Story · 暗调流光时间线
+ * 阶段 3：Countdown · 倒计时与大日子闭环
+ * 阶段 4：Gallery · 独立影像相片簿
+ * 阶段 5：Wishes · 弹幕祝福互动
+ * 阶段 6：Venue · 酒店导航与温馨落幕
+ *
+ * 1. 用 CONFIG 覆盖封面 [data-config] 文案，并渲染时间线
+ * 2. 火漆印启缄：body.is-envelope-opened → 翻盖掀起后进入 02 Our Story
+ * 3. 启缄手势内播放背景乐（浏览器禁止无手势自动播放）
+ * 4. 相片叠放：轻扫切换正面合照，点击打开全屏预览
+ * 5. 祝福提交后生成弹幕，并写入 localStorage
+ * 6. 落幕页写入地点、日期，并绑定高德 / 腾讯导航
+ */
+(function () {
+  'use strict';
+
+  var cover = document.getElementById('cover');
+  var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var OPEN_MS = prefersReducedMotion ? 0 : 1500;
+  var bgm = document.getElementById('bgm');
+  var audioToggle = document.querySelector('.audio-toggle');
+  var audioReady = false;
+
+  /** 许超 → 许 超 */
+  function spacedName(name) {
+    return String(name || '').split('').join(' ');
+  }
+
+  /** 2026-11-16 → 2026 . 11 . 16 */
+  function formatDate(isoDate) {
+    var parts = String(isoDate || '').split('-');
+    return parts.length === 3 ? parts.join(' . ') : '';
+  }
+
+  /** 2023-12-08 → 2023.12.08 */
+  function formatStoryDate(isoDate) {
+    var parts = String(isoDate || '').split('-');
+    return parts.length === 3 ? parts.join('.') : String(isoDate || '');
+  }
+
+  function syncFromConfig() {
+    if (typeof CONFIG === 'undefined' || !cover) return;
+
+    var values = {
+      groom: spacedName(CONFIG.couple.groom),
+      bride: spacedName(CONFIG.couple.bride),
+      date: formatDate(CONFIG.wedding.date),
+      venue: CONFIG.wedding.venue,
+    };
+
+    Object.keys(values).forEach(function (key) {
+      var el = cover.querySelector('[data-config="' + key + '"]');
+      if (el && values[key]) el.textContent = values[key];
+    });
+
+    var time = cover.querySelector('time[data-config="date"]');
+    if (time && CONFIG.wedding.date) time.setAttribute('datetime', CONFIG.wedding.date);
+
+    bindVenue();
+  }
+
+  function bindVenue() {
+    var venue = document.getElementById('venue');
+    if (!venue || typeof CONFIG === 'undefined') return;
+
+    var wedding = CONFIG.wedding || {};
+    var closing = CONFIG.closing || {};
+    var dateEl = venue.querySelector('[data-config="venue-date"]');
+    var nameEl = venue.querySelector('[data-config="venue-name"]');
+    var addressEl = venue.querySelector('[data-config="venue-address"]');
+    var gateEl = venue.querySelector('[data-config="venue-gate"]');
+    var monoEl = venue.querySelector('[data-config="closing-mono"]');
+    var wishEl = venue.querySelector('[data-config="closing-wish"]');
+
+    if (dateEl && wedding.date) {
+      dateEl.textContent = formatStoryDate(wedding.date);
+      dateEl.setAttribute('datetime', wedding.date);
+    }
+    if (nameEl && wedding.venue) nameEl.textContent = wedding.venue;
+    if (addressEl && wedding.address) addressEl.textContent = wedding.address;
+    if (gateEl && wedding.entrance) gateEl.textContent = '请从' + wedding.entrance + '进入';
+    if (monoEl && closing.monogram) monoEl.textContent = closing.monogram;
+    if (wishEl && closing.message) wishEl.textContent = closing.message;
+
+    bindVenueNav(venue, wedding);
+  }
+
+  var MAP_SRC = 'xuchao-chengyu-wedding';
+
+  function mapPlaceName(wedding) {
+    return wedding.mapName || wedding.hotel || wedding.venue || '';
+  }
+
+  function mapAddress(wedding) {
+    var address = wedding.address || '';
+    if (wedding.entrance && address && address.indexOf(wedding.entrance) === -1) {
+      return address + '（' + wedding.entrance + '）';
+    }
+    return address;
+  }
+
+  function venueCopyText(wedding) {
+    var parts = [
+      wedding.hotel || wedding.venue || '',
+      wedding.address || ''
+    ];
+    if (wedding.entrance) parts.push('请从' + wedding.entrance + '进入');
+    return parts.filter(Boolean).join(' · ');
+  }
+
+  function venueHint(wedding) {
+    var hotel = wedding.hotel || wedding.venue || '酒店';
+    var gate = wedding.entrance ? '，请从' + wedding.entrance + '进入' : '';
+    if (/micromessenger/i.test(navigator.userAgent)) {
+      return '微信内请优先使用腾讯地图' + gate;
+    }
+    return '导航至' + hotel + gate;
+  }
+
+  function mapKeyword(wedding) {
+    var name = mapPlaceName(wedding);
+    if (wedding.address && name.indexOf(wedding.address) === -1) {
+      return name + ' ' + wedding.address;
+    }
+    return name;
+  }
+
+  /** 高德：有坐标则驾车导航到门口；否则用全称 + 城市搜索，避免全国同名店 */
+  function amapUrl(wedding) {
+    if (wedding.mapUrl) return wedding.mapUrl;
+
+    var tail = '&src=' + MAP_SRC + '&callnative=1';
+    var name = mapPlaceName(wedding);
+
+    if (wedding.coords) {
+      return 'https://uri.amap.com/navigation?to=' +
+        encodeURIComponent(wedding.coords + ',' + name) +
+        '&mode=car&coordinate=gaode' + tail;
+    }
+    if (wedding.poiId) {
+      return 'https://uri.amap.com/marker?poiid=' + encodeURIComponent(wedding.poiId) + tail;
+    }
+    return 'https://uri.amap.com/search?keyword=' + encodeURIComponent(mapKeyword(wedding)) +
+      '&city=' + encodeURIComponent(wedding.city || '') + tail;
+  }
+
+  /** 腾讯：coord 为 '纬度,经度'，与高德 '经度,纬度' 相反；微信内优先走这条 */
+  function qqMapUrl(wedding) {
+    var name = mapPlaceName(wedding);
+    var referer = '&referer=' + MAP_SRC;
+
+    if (wedding.coords) {
+      var pair = wedding.coords.split(',');
+      var marker = 'coord:' + pair[1] + ',' + pair[0] +
+        ';title:' + name +
+        ';addr:' + mapAddress(wedding);
+      return 'https://apis.map.qq.com/uri/v1/marker?marker=' + encodeURIComponent(marker) + referer;
+    }
+    return 'https://apis.map.qq.com/uri/v1/search?keyword=' + encodeURIComponent(mapKeyword(wedding)) +
+      '&region=' + encodeURIComponent(wedding.city || '') + referer;
+  }
+
+  /* iOS 微信需要真实 textarea 才能选中，readonly 可避免软键盘弹出 */
+  function legacyCopy(text) {
+    var pad = document.createElement('textarea');
+    pad.value = text;
+    pad.setAttribute('readonly', 'readonly');
+    pad.style.cssText = 'position:fixed;top:-1000px;opacity:0;';
+    document.body.appendChild(pad);
+    pad.select();
+    pad.setSelectionRange(0, text.length);
+
+    var ok = false;
+    try {
+      ok = document.execCommand('copy');
+    } catch (err) {
+      ok = false;
+    }
+    document.body.removeChild(pad);
+    return ok;
+  }
+
+  function copyAddress(text) {
+    function fallback() {
+      return legacyCopy(text) ? Promise.resolve() : Promise.reject(new Error('copy-unavailable'));
+    }
+
+    /* 异步剪贴板在失焦或非安全上下文下会被拒绝，需再降级一层 */
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text).catch(fallback);
+    }
+    return fallback();
+  }
+
+  function bindVenueNav(venue, wedding) {
+    var amap = venue.querySelector('[data-nav="amap"]');
+    var qq = venue.querySelector('[data-nav="qq"]');
+    var copy = venue.querySelector('[data-nav="copy"]');
+    var hint = venue.querySelector('.venue__nav-hint');
+
+    if (amap) amap.setAttribute('href', amapUrl(wedding));
+    if (qq) qq.setAttribute('href', qqMapUrl(wedding));
+
+    if (hint) hint.textContent = venueHint(wedding);
+
+    if (!copy) return;
+    copy.addEventListener('click', function (event) {
+      event.preventDefault();
+      var text = venueCopyText(wedding);
+      copyAddress(text).then(function () {
+        if (hint) hint.textContent = '地址已复制，可粘贴到任意地图 App';
+      }).catch(function () {
+        if (hint) hint.textContent = '请长按复制：' + text;
+      });
+    });
+  }
+
+  function renderStory() {
+    var list = document.getElementById('timeline');
+    if (!list || typeof CONFIG === 'undefined' || !CONFIG.timeline) return;
+
+    list.textContent = '';
+
+    CONFIG.timeline.forEach(function (item) {
+      var li = document.createElement('li');
+      li.className = 'timeline__node';
+      if (item.highlight) li.classList.add('timeline__node--wedding');
+
+      var copy = document.createElement('div');
+      copy.className = 'timeline__copy';
+
+      var time = document.createElement('time');
+      time.className = 'timeline__date';
+      if (item.date) time.setAttribute('datetime', item.date);
+      time.textContent = formatStoryDate(item.date);
+
+      var en = document.createElement('h3');
+      en.className = 'timeline__en';
+      en.textContent = item.title || '';
+
+      var zh = document.createElement('p');
+      zh.className = 'timeline__zh';
+      zh.textContent = item.caption || '';
+
+      copy.appendChild(time);
+      copy.appendChild(en);
+      copy.appendChild(zh);
+      li.appendChild(copy);
+
+      if (item.photo) {
+        var figure = document.createElement('figure');
+        figure.className = 'timeline__frame';
+        if (item.frame) figure.classList.add('timeline__frame--' + item.frame);
+
+        var img = document.createElement('img');
+        img.src = item.photo;
+        img.alt = item.photoAlt || '';
+        img.loading = 'lazy';
+        img.decoding = 'async';
+
+        figure.appendChild(img);
+        li.appendChild(figure);
+      }
+
+      list.appendChild(li);
+    });
+  }
+
+  function padDigits(value, width) {
+    var text = String(Math.max(0, value | 0));
+    while (text.length < width) text = '0' + text;
+    return text;
+  }
+
+  function weddingTargetDate() {
+    if (typeof CONFIG === 'undefined' || !CONFIG.wedding || !CONFIG.wedding.date) {
+      return null;
+    }
+    var time = CONFIG.wedding.time ? CONFIG.wedding.time : '00:00:00';
+    var parsed = new Date(CONFIG.wedding.date + 'T' + time);
+    return isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  function remainingUntil(target) {
+    var ms = target.getTime() - Date.now();
+    if (ms < 0) ms = 0;
+    var total = Math.floor(ms / 1000);
+    var days = Math.floor(total / 86400);
+    total %= 86400;
+    var hours = Math.floor(total / 3600);
+    total %= 3600;
+    return {
+      days: days,
+      hours: hours,
+      minutes: Math.floor(total / 60),
+      seconds: total % 60
+    };
+  }
+
+  function setTextIfChanged(el, value) {
+    if (el && el.textContent !== value) el.textContent = value;
+  }
+
+  function initCountdown() {
+    var root = document.getElementById('countdown');
+    if (!root) return;
+
+    var target = weddingTargetDate();
+    var dateEl = root.querySelector('[data-config="countdown-date"]');
+    var status = document.getElementById('countdown-status');
+    var daysEl = root.querySelector('[data-unit="days"]');
+    var hoursEl = root.querySelector('[data-unit="hours"]');
+    var minutesEl = root.querySelector('[data-unit="minutes"]');
+    var secondsEl = root.querySelector('[data-unit="seconds"]');
+
+    if (dateEl && typeof CONFIG !== 'undefined' && CONFIG.wedding && CONFIG.wedding.date) {
+      dateEl.textContent = formatStoryDate(CONFIG.wedding.date);
+      dateEl.setAttribute('datetime', CONFIG.wedding.date);
+    }
+
+    if (!target || !daysEl) return;
+
+    var lastSpokenDays = -1;
+
+    function tick() {
+      var parts = remainingUntil(target);
+      setTextIfChanged(daysEl, padDigits(parts.days, 3));
+      setTextIfChanged(hoursEl, padDigits(parts.hours, 2));
+      setTextIfChanged(minutesEl, padDigits(parts.minutes, 2));
+      setTextIfChanged(secondsEl, padDigits(parts.seconds, 2));
+
+      if (status && parts.days !== lastSpokenDays) {
+        lastSpokenDays = parts.days;
+        status.textContent = parts.days === 0 && parts.hours === 0 && parts.minutes === 0 && parts.seconds === 0
+          ? '婚礼之日已至。'
+          : '距离婚礼还有 ' + parts.days + ' 天。';
+      }
+    }
+
+    tick();
+    window.setInterval(tick, 1000);
+  }
+
+  function collectGalleryPhotos() {
+    if (typeof CONFIG === 'undefined' || !Array.isArray(CONFIG.photos)) return [];
+
+    var photos = [];
+    CONFIG.photos.forEach(function (group) {
+      (group.items || []).forEach(function (item) {
+        if (!item || !item.src) return;
+        photos.push({
+          src: item.src,
+          alt: item.alt || '',
+          caption: item.caption || '',
+          objectPosition: item.objectPosition || ''
+        });
+      });
+    });
+    return photos;
+  }
+
+  function padIndex(value) {
+    var text = String(value);
+    return text.length < 2 ? '0' + text : text;
+  }
+
+  function initGallery() {
+    var stack = document.getElementById('gallery-stack');
+    var indexEl = document.getElementById('gallery-index');
+    var overlay = document.getElementById('lightbox');
+    var photos = collectGalleryPhotos();
+    if (!stack || !photos.length) return;
+
+    var image = overlay ? overlay.querySelector('.lightbox__image') : null;
+    var caption = overlay ? overlay.querySelector('.lightbox__caption') : null;
+    var closeBtn = overlay ? overlay.querySelector('.lightbox__close') : null;
+    var current = 0;
+    var cards = [];
+    var lastFocus = null;
+    var closeTimer = 0;
+    var drag = null;
+
+    function render() {
+      stack.textContent = '';
+      cards = photos.map(function (photo, index) {
+        var card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'gallery-card';
+        card.setAttribute('data-index', String(index));
+        card.setAttribute('aria-label', '查看大图：' + (photo.alt || '婚纱合照'));
+
+        var img = document.createElement('img');
+        img.src = photo.src;
+        img.alt = photo.alt || '';
+        img.draggable = false;
+        img.decoding = 'async';
+        if (index > 1) img.loading = 'lazy';
+        if (photo.objectPosition) img.style.objectPosition = photo.objectPosition;
+
+        card.appendChild(img);
+        stack.appendChild(card);
+        return card;
+      });
+    }
+
+    function layerCards() {
+      cards.forEach(function (card, index) {
+        var dist = index - current;
+        card.classList.remove('is-front', 'is-next', 'is-after', 'is-prev', 'is-idle');
+        card.style.transform = '';
+        card.style.opacity = '';
+
+        if (dist === 0) card.classList.add('is-front');
+        else if (dist === 1) card.classList.add('is-next');
+        else if (dist === 2) card.classList.add('is-after');
+        else if (dist === -1) card.classList.add('is-prev');
+        else card.classList.add('is-idle');
+
+        card.tabIndex = dist === 0 ? 0 : -1;
+      });
+
+      if (indexEl) {
+        indexEl.textContent = padIndex(current + 1) + ' / ' + padIndex(photos.length);
+      }
+    }
+
+    function goTo(next) {
+      if (next < 0 || next >= photos.length || next === current) {
+        layerCards();
+        return false;
+      }
+      current = next;
+      layerCards();
+      return true;
+    }
+
+    function openLightbox() {
+      if (!overlay || !image) return;
+      var photo = photos[current];
+      if (!photo) return;
+
+      window.clearTimeout(closeTimer);
+      lastFocus = document.activeElement;
+      image.src = photo.src;
+      image.alt = photo.alt || '';
+
+      if (caption) {
+        caption.textContent = photo.caption || '';
+        caption.hidden = !photo.caption;
+      }
+
+      overlay.inert = false;
+      overlay.classList.add('is-open');
+      overlay.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('is-lightbox-open');
+      if (closeBtn) closeBtn.focus();
+    }
+
+    function closeLightbox() {
+      if (!overlay || !overlay.classList.contains('is-open')) return;
+
+      overlay.classList.remove('is-open');
+      overlay.setAttribute('aria-hidden', 'true');
+      overlay.inert = true;
+      document.body.classList.remove('is-lightbox-open');
+
+      closeTimer = window.setTimeout(function () {
+        if (overlay.classList.contains('is-open') || !image) return;
+        image.removeAttribute('src');
+        image.alt = '';
+      }, prefersReducedMotion ? 0 : 480);
+
+      if (lastFocus && typeof lastFocus.focus === 'function') {
+        lastFocus.focus();
+      }
+    }
+
+    function showLightboxPhoto() {
+      var photo = photos[current];
+      if (!photo || !image) return;
+      image.src = photo.src;
+      image.alt = photo.alt || '';
+      if (caption) {
+        caption.textContent = photo.caption || '';
+        caption.hidden = !photo.caption;
+      }
+      layerCards();
+    }
+
+    function resist(dx) {
+      if ((current === 0 && dx > 0) || (current === photos.length - 1 && dx < 0)) {
+        return dx * 0.28;
+      }
+      return dx;
+    }
+
+    function clearLightboxShift() {
+      if (overlay) overlay.classList.remove('is-dragging');
+      if (image) image.style.transform = '';
+    }
+
+    function endDrag(target, onTap, onSwipe) {
+      if (!drag) return;
+
+      var dx = resist(drag.x);
+      var dy = drag.y;
+      var swiped = Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy);
+      drag = null;
+
+      if (target) target.classList.remove('is-dragging');
+      clearLightboxShift();
+
+      if (swiped) {
+        onSwipe(dx < 0 ? 1 : -1);
+        return;
+      }
+
+      layerCards();
+
+      if (Math.abs(dx) < 12 && Math.abs(dy) < 12) {
+        onTap();
+      }
+    }
+
+    stack.addEventListener('pointerdown', function (event) {
+      if (event.button && event.button !== 0) return;
+      drag = { x: 0, y: 0, startX: event.clientX, startY: event.clientY, pointerId: event.pointerId };
+      stack.classList.add('is-dragging');
+      if (stack.setPointerCapture) stack.setPointerCapture(event.pointerId);
+    });
+
+    stack.addEventListener('pointermove', function (event) {
+      if (!drag || event.pointerId !== drag.pointerId) return;
+      drag.x = event.clientX - drag.startX;
+      drag.y = event.clientY - drag.startY;
+
+      var front = cards[current];
+      if (!front) return;
+      front.style.transform = 'translate3d(' + resist(drag.x) + 'px, 0, 0)';
+    });
+
+    stack.addEventListener('pointerup', function (event) {
+      if (!drag || event.pointerId !== drag.pointerId) return;
+      endDrag(stack, openLightbox, function (step) {
+        if (!goTo(current + step)) layerCards();
+      });
+    });
+
+    stack.addEventListener('pointercancel', function () {
+      drag = null;
+      stack.classList.remove('is-dragging');
+      layerCards();
+    });
+
+    stack.addEventListener('click', function (event) {
+      event.preventDefault();
+    });
+
+    if (overlay) {
+      overlay.addEventListener('pointerdown', function (event) {
+        if (event.button && event.button !== 0) return;
+        drag = { x: 0, y: 0, startX: event.clientX, startY: event.clientY, pointerId: event.pointerId };
+      });
+
+      overlay.addEventListener('pointermove', function (event) {
+        if (!drag || event.pointerId !== drag.pointerId || !image) return;
+        drag.x = event.clientX - drag.startX;
+        drag.y = event.clientY - drag.startY;
+        if (Math.abs(drag.x) < Math.abs(drag.y)) return;
+        overlay.classList.add('is-dragging');
+        image.style.transform = 'translate3d(' + resist(drag.x) + 'px, 0, 0)';
+      });
+
+      overlay.addEventListener('pointerup', function (event) {
+        if (!drag || event.pointerId !== drag.pointerId) return;
+        var tappedClose = event.target.closest && event.target.closest('.lightbox__close');
+        var tappedBlank = event.target === overlay || event.target.classList.contains('lightbox__stage');
+
+        endDrag(null, function () {
+          if (tappedClose || tappedBlank) closeLightbox();
+        }, function (step) {
+          goTo(current + step);
+          showLightboxPhoto();
+        });
+      });
+    }
+
+    document.addEventListener('keydown', function (event) {
+      if (overlay && overlay.classList.contains('is-open')) {
+        if (event.key === 'Escape') closeLightbox();
+        if (event.key === 'ArrowRight') {
+          goTo(current + 1);
+          showLightboxPhoto();
+        }
+        if (event.key === 'ArrowLeft') {
+          goTo(current - 1);
+          showLightboxPhoto();
+        }
+        return;
+      }
+
+      if (!stack.contains(document.activeElement)) return;
+      if (event.key === 'ArrowRight') goTo(current + 1);
+      if (event.key === 'ArrowLeft') goTo(current - 1);
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openLightbox();
+      }
+    });
+
+    render();
+    layerCards();
+  }
+
+  function transitionToChapterTwo() {
+    if (cover) cover.classList.add('is-open');
+    var story = document.getElementById('story');
+    if (story) story.classList.add('is-revealed');
+  }
+
+  function syncAudioToggle() {
+    if (!audioToggle || !bgm) return;
+    var muted = bgm.paused || bgm.muted;
+    audioToggle.hidden = !audioReady;
+    audioToggle.setAttribute('aria-pressed', muted ? 'true' : 'false');
+    audioToggle.setAttribute('aria-label', muted ? '打开背景音乐' : '关闭背景音乐');
+    audioToggle.classList.toggle('is-muted', muted);
+  }
+
+  function playBgm() {
+    if (!bgm || !bgm.getAttribute('src')) return Promise.resolve();
+    bgm.muted = false;
+    var playPromise = bgm.play();
+    if (!playPromise || typeof playPromise.then !== 'function') {
+      audioReady = true;
+      syncAudioToggle();
+      return Promise.resolve();
+    }
+    return playPromise.then(function () {
+      audioReady = true;
+      syncAudioToggle();
+    }).catch(function () {
+      audioReady = true;
+      syncAudioToggle();
+    });
+  }
+
+  function initAudio() {
+    if (!bgm || typeof CONFIG === 'undefined' || !CONFIG.audio || !CONFIG.audio.src) {
+      return;
+    }
+
+    bgm.src = encodeURI(CONFIG.audio.src);
+    bgm.loop = CONFIG.audio.loop !== false;
+    bgm.volume = typeof CONFIG.audio.volume === 'number' ? CONFIG.audio.volume : 0.42;
+    bgm.load();
+
+    if (audioToggle) {
+      audioToggle.addEventListener('click', function () {
+        if (bgm.paused) {
+          playBgm();
+          return;
+        }
+        bgm.pause();
+        syncAudioToggle();
+      });
+    }
+  }
+
+  function bindSeal() {
+    if (!cover) return;
+    var seal = cover.querySelector('.wax-seal');
+    if (!seal) return;
+
+    seal.addEventListener('click', function () {
+      playBgm();
+
+      if (document.body.classList.contains('is-envelope-opened')) {
+        return;
+      }
+
+      document.body.classList.add('is-envelope-opened');
+      window.setTimeout(transitionToChapterTwo, OPEN_MS);
+    });
+  }
+
+  var WISH_STORAGE_KEY = 'xc-cy-wishes-v2';
+  var WISH_MAX_STORED = 36;
+  var WISH_TRACKS = 4;
+  var WISH_SPEED = 42;  // px/s，四条轨道同速，后一条不会追上前一条
+  var WISH_GAP = 56;    // 同轨相邻两条之间的最小像素间隔
+
+  function readStoredWishes() {
+    try {
+      var parsed = JSON.parse(window.localStorage.getItem(WISH_STORAGE_KEY) || '[]');
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (err) {
+      return [];
+    }
+  }
+
+  function writeStoredWishes(items) {
+    try {
+      window.localStorage.setItem(
+        WISH_STORAGE_KEY,
+        JSON.stringify(items.slice(-WISH_MAX_STORED))
+      );
+    } catch (err) {
+      /* 隐私模式或配额不足时仍展示当次弹幕 */
+    }
+  }
+
+  function composeWishText(name, message) {
+    var who = String(name || '').trim();
+    var text = String(message || '').trim();
+    return who ? who + ' · ' + text : text;
+  }
+
+  /** 远端未配置、或浏览器无 fetch 时返回 null，祝福退回本地存储 */
+  function wishRemote() {
+    var notes = typeof CONFIG !== 'undefined' && CONFIG.guestNotes;
+    var remote = notes && notes.remote;
+    if (!remote || !remote.enabled || !remote.endpoint || !window.fetch) return null;
+    return remote;
+  }
+
+  function wishRemoteHeaders(remote) {
+    var headers = { 'Content-Type': 'application/json' };
+
+    if (remote.apiKey) {
+      headers.apikey = remote.apiKey;
+      headers.Authorization = 'Bearer ' + remote.apiKey;
+    }
+
+    var extra = remote.headers || {};
+    Object.keys(extra).forEach(function (key) {
+      headers[key] = extra[key];
+    });
+
+    return headers;
+  }
+
+  /** 各家字段命名不同，统一成 { name, message, at } */
+  function normalizeWish(raw) {
+    if (!raw) return null;
+
+    var message = String(raw.message || raw.content || raw.wish || '').trim();
+    if (!message) return null;
+
+    return {
+      name: String(raw.name || raw.guestName || raw.guest_name || '').trim(),
+      message: message,
+      at: raw.at || raw.created_at || raw.createdAt || 0,
+    };
+  }
+
+  function fetchRemoteWishes(remote) {
+    return window.fetch(remote.endpoint + (remote.listQuery || ''), {
+      headers: wishRemoteHeaders(remote),
+    }).then(function (res) {
+      return res.ok ? res.json() : [];
+    }).then(function (payload) {
+      var rows = payload && Array.isArray(payload.data) ? payload.data : payload;
+      return (Array.isArray(rows) ? rows : []).map(normalizeWish).filter(Boolean);
+    }).catch(function () {
+      return [];
+    });
+  }
+
+  function postRemoteWish(remote, wish) {
+    return window.fetch(remote.endpoint, {
+      method: 'POST',
+      headers: wishRemoteHeaders(remote),
+      body: JSON.stringify({ name: wish.name, message: wish.message, at: wish.at }),
+    }).then(function (res) {
+      if (!res.ok) throw new Error('remote rejected ' + res.status);
+    });
+  }
+
+  function markWishSynced(target) {
+    writeStoredWishes(readStoredWishes().map(function (wish) {
+      if (wish && wish.at === target.at && wish.message === target.message) {
+        wish.synced = true;
+      }
+      return wish;
+    }));
+  }
+
+  function createWishItem(wish) {
+    var item = document.createElement('p');
+    item.className = 'danmu-item';
+    if (wish.fresh) item.classList.add('danmu-item--fresh');
+    item.textContent = wish.text;
+    return item;
+  }
+
+  function setWishHint(hint, text) {
+    if (!hint) return;
+    if (!text) {
+      hint.hidden = true;
+      hint.textContent = '';
+      return;
+    }
+    hint.hidden = false;
+    hint.textContent = text;
+  }
+
+  function initWishes() {
+    var container = document.getElementById('danmu-container');
+    var form = document.getElementById('wish-form');
+    if (!container || !form) return;
+
+    var nameInput = form.querySelector('[name="guestName"]');
+    var messageInput = form.querySelector('[name="message"]');
+    var hint = document.getElementById('wish-hint');
+
+    var emptyNote = document.getElementById('danmu-empty');
+    var emptyText = typeof CONFIG !== 'undefined' && CONFIG.guestNotes && CONFIG.guestNotes.emptyText;
+    if (emptyNote && emptyText) emptyNote.textContent = emptyText;
+
+    var remote = wishRemote();
+
+    // 只播放来宾真实提交过的祝福，没有则保持空状态
+    var queue = [];
+    var seen = {};
+    var onWishReady = null;
+
+    function syncEmptyNote() {
+      if (emptyNote) emptyNote.hidden = queue.length > 0;
+    }
+
+    function wishKey(wish) {
+      return wish.name + '\u0001' + wish.message;
+    }
+
+    /** 本地、远端、当场提交三个来源共用；重复内容只留一条 */
+    function addWish(raw, fresh) {
+      var wish = normalizeWish(raw);
+      if (!wish || seen[wishKey(wish)]) return null;
+      seen[wishKey(wish)] = true;
+
+      var entry = { text: composeWishText(wish.name, wish.message), fresh: !!fresh };
+      queue.push(entry);
+      syncEmptyNote();
+      if (onWishReady) onWishReady(entry);
+      return entry;
+    }
+
+    readStoredWishes().forEach(function (wish) {
+      addWish(wish, false);
+    });
+
+    function loadRemote() {
+      if (!remote) return;
+      fetchRemoteWishes(remote).then(function (rows) {
+        rows.forEach(function (row) { addWish(row, false); });
+      });
+    }
+
+    /** 之前离线提交、尚未送达的祝福，联网后补发 */
+    function flushUnsynced() {
+      if (!remote) return;
+      readStoredWishes().forEach(function (wish) {
+        if (!wish || wish.synced || !wish.message) return;
+        postRemoteWish(remote, wish).then(function () {
+          markWishSynced(wish);
+        }).catch(function () {});
+      });
+    }
+
+    function startRemoteSync() {
+      if (!remote) return;
+      flushUnsynced();
+      loadRemote();
+      window.setInterval(loadRemote, remote.pollMs || 20000);
+    }
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+
+      var name = nameInput ? nameInput.value.trim() : '';
+      var message = messageInput ? messageInput.value.trim() : '';
+
+      if (nameInput) nameInput.classList.toggle('is-invalid', !name);
+      if (messageInput) messageInput.classList.toggle('is-invalid', !message);
+
+      if (!name || !message) {
+        setWishHint(hint, '请写下姓名与祝福后再送出。');
+        return;
+      }
+
+      var record = { name: name, message: message, at: Date.now(), synced: !remote };
+      if (!addWish(record, true)) {
+        setWishHint(hint, '这条祝福已经在飘了。');
+        return;
+      }
+
+      var stored = readStoredWishes();
+      stored.push(record);
+      writeStoredWishes(stored);
+
+      form.reset();
+      if (nameInput) nameInput.classList.remove('is-invalid');
+      if (messageInput) messageInput.classList.remove('is-invalid');
+      setWishHint(hint, '祝福已送出，正随灯火飘过。');
+
+      if (remote) {
+        postRemoteWish(remote, record).then(function () {
+          markWishSynced(record);
+        }).catch(function () {
+          setWishHint(hint, '祝福已存在本机，网络恢复后会自动送达。');
+        });
+      }
+    });
+
+    if (prefersReducedMotion) {
+      queue.forEach(function (wish) {
+        container.appendChild(createWishItem(wish));
+      });
+      onWishReady = function (wish) {
+        container.insertBefore(createWishItem(wish), container.firstChild);
+      };
+      syncEmptyNote();
+      startRemoteSync();
+      return;
+    }
+
+    container.classList.add('is-live');
+    syncEmptyNote();
+
+    var cursor = 0;
+    var pending = [];
+    var tracks = [];
+
+    /** 新祝福优先；其余循环播放，且同一条不会同时出现在两条轨道上 */
+    function nextWish() {
+      if (pending.length) return pending.shift();
+
+      for (var i = 0; i < queue.length; i += 1) {
+        var wish = queue[(cursor + i) % queue.length];
+        if (!wish.live) {
+          cursor = (cursor + i + 1) % queue.length;
+          return wish;
+        }
+      }
+      return null;
+    }
+
+    /** 上一条尚未整体离开右边界时返回还需等待的毫秒数 */
+    function trackBusyMs(track) {
+      var last = track.last;
+      if (!last || !last.parentNode) return 0;
+      var overhang = last.getBoundingClientRect().right -
+        container.getBoundingClientRect().right + WISH_GAP;
+      return overhang > 0 ? (overhang / WISH_SPEED) * 1000 : 0;
+    }
+
+    /** 投放一条弹幕，返回该轨道下一条的最早可投放间隔 */
+    function launch(track, wish, progress) {
+      var item = createWishItem(wish);
+      item.setAttribute('data-track', String(track.index));
+      container.appendChild(item);
+
+      var width = item.offsetWidth;
+      var travel = container.offsetWidth + width + WISH_GAP;
+      var duration = travel / WISH_SPEED;
+
+      item.style.setProperty('--danmu-travel', travel + 'px');
+      item.style.animationDuration = duration.toFixed(2) + 's';
+      if (progress) {
+        item.style.animationDelay = (-duration * progress).toFixed(2) + 's';
+      }
+      wish.live = true;
+      wish.fresh = false;  // 高亮只保留刚提交的那一程
+      item.addEventListener('animationend', function () {
+        wish.live = false;
+        if (item.parentNode) item.parentNode.removeChild(item);
+      });
+
+      track.last = item;
+
+      var remainingPx = Math.max(0, width + WISH_GAP - travel * (progress || 0));
+      return Math.max(400, (remainingPx / WISH_SPEED) * 1000);
+    }
+
+    function scheduleTrack(track, wait) {
+      window.clearTimeout(track.timer);
+      track.freeAt = Date.now() + wait;
+      track.timer = window.setTimeout(function () { runTrack(track); }, wait);
+    }
+
+    function runTrack(track) {
+      var busy = trackBusyMs(track);
+      if (busy > 0) {
+        scheduleTrack(track, busy);
+        return;
+      }
+
+      var wish = nextWish();
+      scheduleTrack(track, wish ? launch(track, wish, 0) : 1500);
+    }
+
+    for (var i = 0; i < WISH_TRACKS; i += 1) {
+      tracks.push({ index: i + 1, timer: 0, freeAt: 0, last: null });
+    }
+
+    // 有历史祝福时错开进度铺满轨道，只有一条时让它自右侧走进来
+    tracks.forEach(function (track, index) {
+      var wish = nextWish();
+      if (!wish) {
+        scheduleTrack(track, 1200 + index * 300);
+        return;
+      }
+      scheduleTrack(track, launch(track, wish, queue.length > 1 ? 0.72 - index * 0.18 : 0));
+    });
+
+    // 刚提交的插队上屏；远端拉回来的交给轨道循环自然带出
+    onWishReady = function (wish) {
+      if (!wish.fresh) return;
+
+      pending.push(wish);
+
+      var target = tracks[0];
+      tracks.forEach(function (track) {
+        if (track.freeAt < target.freeAt) target = track;
+      });
+      scheduleTrack(target, Math.max(0, target.freeAt - Date.now()));
+    };
+
+    startRemoteSync();
+  }
+
+  syncFromConfig();
+  renderStory();
+  initCountdown();
+  initGallery();
+  initAudio();
+  bindSeal();
+  initWishes();
+})();

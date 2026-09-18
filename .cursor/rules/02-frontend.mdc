@@ -1,0 +1,31 @@
+---
+description: 前端代码结构与开发约定
+globs: "**/*.{html,css,js}"
+alwaysApply: false
+---
+
+# 前端规则
+
+## 技术栈
+
+- 纯 HTML + CSS + 原生 JavaScript
+- 无构建工具，可直接静态托管
+
+## 文件职责
+
+- `index.html` — 页面结构
+- `css/style.css` — 样式与主题变量
+- `js/config.js` — 可配置内容（新人、时间、地点等）
+- `js/main.js` — 入口逻辑与交互
+
+## 编码约定
+
+- 使用语义化 HTML
+- CSS 变量管理主题色与间距
+- JS 模块化函数，避免全局污染
+- 注释说明非显而易见的逻辑
+
+## 兼容性
+
+- 现代移动浏览器 + 微信内置浏览器
+- 不使用仅桌面端可用的 API
