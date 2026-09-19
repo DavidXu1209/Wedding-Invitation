@@ -41,6 +41,11 @@
     return parts.length === 3 ? parts.join('.') : String(isoDate || '');
   }
 
+  function storyNodeId(isoDate) {
+    var parts = String(isoDate || '').split('-');
+    return parts.length === 3 ? 'story-' + parts[1] + '-' + parts[2] : '';
+  }
+
   function syncFromConfig() {
     if (typeof CONFIG === 'undefined' || !cover) return;
 
@@ -227,7 +232,13 @@
     CONFIG.timeline.forEach(function (item) {
       var li = document.createElement('li');
       li.className = 'timeline__node';
+      var nodeId = storyNodeId(item.date);
+      if (nodeId) li.id = nodeId;
       if (item.highlight) li.classList.add('timeline__node--wedding');
+      if (item.stack || item.frame === 'landscape' || !item.photo) {
+        li.classList.add('timeline__node--stack');
+      }
+      if (item.photo) li.classList.add('timeline__node--has-photo');
 
       var copy = document.createElement('div');
       copy.className = 'timeline__copy';
@@ -355,7 +366,8 @@
           src: item.src,
           alt: item.alt || '',
           caption: item.caption || '',
-          objectPosition: item.objectPosition || ''
+          objectPosition: item.objectPosition || '',
+          objectFit: item.objectFit || ''
         });
       });
     });
@@ -398,7 +410,6 @@
         img.draggable = false;
         img.decoding = 'async';
         if (index > 1) img.loading = 'lazy';
-        if (photo.objectPosition) img.style.objectPosition = photo.objectPosition;
 
         card.appendChild(img);
         stack.appendChild(card);
