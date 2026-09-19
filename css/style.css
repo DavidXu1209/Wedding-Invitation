@@ -964,6 +964,12 @@ body.is-envelope-opened .couple {
   padding: 8px 0 28px;
 }
 
+.timeline::before,
+.timeline::after {
+  content: none;
+  display: none !important;
+}
+
 .timeline__node {
   position: relative;
   display: grid;
@@ -977,19 +983,6 @@ body.is-envelope-opened .couple {
 
 .timeline__node:last-child {
   padding-bottom: 12px;
-}
-
-/* 节点间竖线：从刻度连到下一节点，不画穿整段时间轴 */
-.timeline__node:not(:last-child)::before {
-  content: '';
-  position: absolute;
-  top: 1.15em;
-  bottom: 0;
-  left: 50%;
-  z-index: 0;
-  width: 1px;
-  background: var(--color-hairline);
-  transform: translateX(-50%);
 }
 
 .timeline__node::after {
@@ -1122,28 +1115,6 @@ body.is-envelope-opened .couple {
 .timeline__node--stack .timeline__en,
 #story-10-04 .timeline__en {
   margin-top: 0;
-}
-
-/* 有照片的居中节点：竖线在文案结束，不穿透照片 */
-#story-10-04::before,
-#story-12-18::before,
-#story-11-16::before,
-.timeline__node--stack.timeline__node--has-photo::before {
-  display: none;
-}
-
-#story-10-04 .timeline__copy::before,
-#story-12-18 .timeline__copy::before,
-#story-11-16 .timeline__copy::before,
-.timeline__node--stack.timeline__node--has-photo .timeline__copy::before {
-  content: '';
-  position: absolute;
-  top: 1.15em;
-  bottom: -8px;
-  left: 50%;
-  width: 1px;
-  background: var(--color-hairline);
-  transform: translateX(-50%);
 }
 
 .chapter--story.is-revealed .timeline__node {
@@ -1898,6 +1869,48 @@ body.is-envelope-opened .chapter--wishes {
   font-size: 11px;
   letter-spacing: 0.06em;
   color: rgba(232, 214, 168, 0.78);
+}
+
+.wish-book {
+  list-style: none;
+  width: 100%;
+  max-width: 420px;
+  max-height: 42vh;
+  margin: 28px auto 0;
+  padding: 8px 0 0;
+  overflow: auto;
+  border-top: 1px solid var(--color-hairline);
+}
+
+.wish-book[hidden] {
+  display: none;
+}
+
+.wish-book__item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(250, 249, 246, 0.08);
+}
+
+.wish-book__name {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 400;
+  font-style: italic;
+  letter-spacing: 0.08em;
+  color: rgba(238, 222, 184, 0.88);
+}
+
+.wish-book__message {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 300;
+  line-height: 1.7;
+  letter-spacing: 0.06em;
+  color: rgba(250, 249, 246, 0.82);
+  word-break: break-word;
 }
 
 @media (prefers-reduced-motion: reduce) {

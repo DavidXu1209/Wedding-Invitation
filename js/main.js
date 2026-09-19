@@ -11,7 +11,7 @@
  * 2. 火漆印启缄：body.is-envelope-opened → 翻盖掀起后进入 02 Our Story
  * 3. 启缄手势内播放背景乐（浏览器禁止无手势自动播放）
  * 4. 相片叠放：轻扫切换正面合照，点击打开全屏预览
- * 5. 祝福提交后生成弹幕，并写入 localStorage
+ * 5. 祝福写入同站祝福簿，亲友打开同一地址即可互见
  * 6. 落幕页写入地点、日期，并绑定高德 / 腾讯导航
  */
 (function () {
@@ -772,12 +772,11 @@
     return window.fetch(remote.endpoint + (remote.listQuery || ''), {
       headers: wishRemoteHeaders(remote),
     }).then(function (res) {
-      return res.ok ? res.json() : [];
+      if (!res.ok) throw new Error('remote list ' + res.status);
+      return res.json();
     }).then(function (payload) {
       var rows = payload && Array.isArray(payload.data) ? payload.data : payload;
       return (Array.isArray(rows) ? rows : []).map(normalizeWish).filter(Boolean);
-    }).catch(function () {
-      return [];
     });
   }
 
@@ -829,45 +828,96 @@
     var hint = document.getElementById('wish-hint');
 
     var emptyNote = document.getElementById('danmu-empty');
+    var book = document.getElementById('wish-book');
     var emptyText = typeof CONFIG !== 'undefined' && CONFIG.guestNotes && CONFIG.guestNotes.emptyText;
     if (emptyNote && emptyText) emptyNote.textContent = emptyText;
 
     var remote = wishRemote();
 
-    // 只播放来宾真实提交过的祝福，没有则保持空状态
+    // 公开祝福以祝福簿为准；本机只作离线补发，不编造内容
     var queue = [];
     var seen = {};
     var onWishReady = null;
+    var bookOnline = !remote;
 
     function syncEmptyNote() {
-      if (emptyNote) emptyNote.hidden = queue.length > 0;
+      if (!emptyNote) return;
+      emptyNote.hidden = queue.length > 0;
+      if (queue.length) return;
+      emptyNote.textContent = remote && !bookOnline
+        ? '正在取回来宾的祝福…'
+        : (emptyText || '还没有人留下祝福，等你写下第一句');
+    }
+
+    function renderBook() {
+      if (!book) return;
+      book.textContent = '';
+      if (!queue.length) {
+        book.hidden = true;
+        return;
+      }
+
+      book.hidden = false;
+      queue.forEach(function (wish) {
+        var item = document.createElement('li');
+        item.className = 'wish-book__item';
+
+        var name = document.createElement('span');
+        name.className = 'wish-book__name';
+        name.textContent = wish.name || '来宾';
+
+        var message = document.createElement('span');
+        message.className = 'wish-book__message';
+        message.textContent = wish.message;
+
+        item.appendChild(name);
+        item.appendChild(message);
+        book.appendChild(item);
+      });
     }
 
     function wishKey(wish) {
       return wish.name + '\u0001' + wish.message;
     }
 
-    /** 本地、远端、当场提交三个来源共用；重复内容只留一条 */
+    /** 远端、当场提交、未同步的本机记录共用；重复内容只留一条 */
     function addWish(raw, fresh) {
       var wish = normalizeWish(raw);
       if (!wish || seen[wishKey(wish)]) return null;
       seen[wishKey(wish)] = true;
 
-      var entry = { text: composeWishText(wish.name, wish.message), fresh: !!fresh };
+      var entry = {
+        name: wish.name,
+        message: wish.message,
+        text: composeWishText(wish.name, wish.message),
+        fresh: !!fresh,
+      };
       queue.push(entry);
       syncEmptyNote();
+      renderBook();
       if (onWishReady) onWishReady(entry);
       return entry;
     }
 
-    readStoredWishes().forEach(function (wish) {
-      addWish(wish, false);
-    });
+    function addLocalFallback() {
+      readStoredWishes().forEach(function (wish) {
+        addWish(wish, false);
+      });
+    }
 
     function loadRemote() {
-      if (!remote) return;
-      fetchRemoteWishes(remote).then(function (rows) {
+      if (!remote) return Promise.resolve();
+      return fetchRemoteWishes(remote).then(function (rows) {
+        bookOnline = true;
         rows.forEach(function (row) { addWish(row, false); });
+        readStoredWishes().forEach(function (wish) {
+          if (wish && !wish.synced) addWish(wish, false);
+        });
+        syncEmptyNote();
+      }).catch(function () {
+        bookOnline = false;
+        if (!queue.length) addLocalFallback();
+        syncEmptyNote();
       });
     }
 
@@ -883,10 +933,18 @@
     }
 
     function startRemoteSync() {
-      if (!remote) return;
+      if (!remote) {
+        addLocalFallback();
+        syncEmptyNote();
+        return;
+      }
+      syncEmptyNote();
       flushUnsynced();
       loadRemote();
-      window.setInterval(loadRemote, remote.pollMs || 20000);
+      window.setInterval(function () {
+        loadRemote();
+        flushUnsynced();
+      }, remote.pollMs || 10000);
     }
 
     form.addEventListener('submit', function (event) {
@@ -905,7 +963,7 @@
 
       var record = { name: name, message: message, at: Date.now(), synced: !remote };
       if (!addWish(record, true)) {
-        setWishHint(hint, '这条祝福已经在飘了。');
+        setWishHint(hint, '这条祝福已经在簿上。');
         return;
       }
 
@@ -916,13 +974,15 @@
       form.reset();
       if (nameInput) nameInput.classList.remove('is-invalid');
       if (messageInput) messageInput.classList.remove('is-invalid');
-      setWishHint(hint, '祝福已送出，正随灯火飘过。');
+      setWishHint(hint, remote ? '祝福已送出，正在写入祝福簿…' : '祝福已留在这台手机。');
 
       if (remote) {
         postRemoteWish(remote, record).then(function () {
+          bookOnline = true;
           markWishSynced(record);
+          setWishHint(hint, '祝福已送出，打开请柬的亲友都能看见。');
         }).catch(function () {
-          setWishHint(hint, '祝福已存在本机，网络恢复后会自动送达。');
+          setWishHint(hint, '祝福先记在这台手机。请用 npm start 打开请柬，亲友才能互见。');
         });
       }
     });

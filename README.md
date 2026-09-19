@@ -15,7 +15,15 @@ wedding-invitation/
 
 ## 本地预览
 
-直接用浏览器打开 `index.html`，或使用本地静态服务器：
+祝福要让所有亲友看见时，请用同站祝福簿启动（静态目录 + `/api/wishes`）：
+
+```bash
+npm start
+```
+
+浏览器打开 `http://localhost:3456`。部署到任意能跑 Node 的主机后，亲友打开同一地址即可互见祝福。
+
+只看页面、不需要互相看见时，也可以直接打开 `index.html`，或：
 
 ```bash
 npx serve .

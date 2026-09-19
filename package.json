@@ -1,0 +1,7 @@
+{
+  "name": "wedding-invitation",
+  "private": true,
+  "scripts": {
+    "start": "node server/wishes.cjs"
+  }
+}

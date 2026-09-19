@@ -218,18 +218,16 @@ const CONFIG = {
     emptyText: '还没有人留下祝福，等你写下第一句',
     items: [],
 
-    // 远端存储：填好后亲友互相可见；留空则只存在各自手机本地。
-    // 约定的接口形态（Supabase / CloudBase HTTP 函数 / 自建 API 均可满足）：
-    //   GET  endpoint + listQuery  → [{ name, message, at }]
-    //   POST endpoint              ← { name, message, at }
-    // 字段名兼容 content / guestName / created_at 等常见写法。
+    // 祝福簿：亲友打开同一请柬地址即可互见。
+    // 本地 / 部署请用 `npm start`（同站 /api/wishes）。
+    // 若改用 Supabase / 云函数：GET 返回数组，POST { name, message, at }。
     remote: {
-      enabled: false,
-      endpoint: '',
-      listQuery: '?select=name,message,at&order=at.asc&limit=200',
+      enabled: true,
+      endpoint: '/api/wishes',
+      listQuery: '',
       apiKey: '',
       headers: {},
-      pollMs: 20000,
+      pollMs: 10000,
     },
   },
 
