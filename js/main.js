@@ -41,6 +41,13 @@
     return parts.length === 3 ? parts.join('.') : String(isoDate || '');
   }
 
+  /** 2026-11-16 + 12:00:00 → 2026-11-16T12:00:00 */
+  function weddingDateTime(wedding) {
+    var date = wedding && wedding.date ? wedding.date : '';
+    var clock = wedding && wedding.time ? String(wedding.time).slice(0, 8) : '';
+    return clock ? date + 'T' + clock : date;
+  }
+
   function storyNodeId(isoDate) {
     var parts = String(isoDate || '').split('-');
     return parts.length === 3 ? 'story-' + parts[1] + '-' + parts[2] : '';
@@ -53,6 +60,7 @@
       groom: spacedName(CONFIG.couple.groom),
       bride: spacedName(CONFIG.couple.bride),
       date: formatDate(CONFIG.wedding.date),
+      time: CONFIG.wedding.timeLabel || '',
       venue: CONFIG.wedding.venue,
     };
 
@@ -62,7 +70,9 @@
     });
 
     var time = cover.querySelector('time[data-config="date"]');
-    if (time && CONFIG.wedding.date) time.setAttribute('datetime', CONFIG.wedding.date);
+    if (time && CONFIG.wedding.date) {
+      time.setAttribute('datetime', weddingDateTime(CONFIG.wedding));
+    }
 
     bindVenue();
   }
@@ -74,6 +84,7 @@
     var wedding = CONFIG.wedding || {};
     var closing = CONFIG.closing || {};
     var dateEl = venue.querySelector('[data-config="venue-date"]');
+    var hourEl = venue.querySelector('[data-config="venue-time"]');
     var nameEl = venue.querySelector('[data-config="venue-name"]');
     var addressEl = venue.querySelector('[data-config="venue-address"]');
     var gateEl = venue.querySelector('[data-config="venue-gate"]');
@@ -82,8 +93,9 @@
 
     if (dateEl && wedding.date) {
       dateEl.textContent = formatStoryDate(wedding.date);
-      dateEl.setAttribute('datetime', wedding.date);
+      dateEl.setAttribute('datetime', weddingDateTime(wedding));
     }
+    if (hourEl && wedding.timeLabel) hourEl.textContent = wedding.timeLabel;
     if (nameEl && wedding.venue) nameEl.textContent = wedding.venue;
     if (addressEl && wedding.address) addressEl.textContent = wedding.address;
     if (gateEl && wedding.entrance) gateEl.textContent = '请从' + wedding.entrance + '进入';
@@ -109,6 +121,8 @@
 
   function venueCopyText(wedding) {
     var parts = [
+      wedding.date ? formatStoryDate(wedding.date) : '',
+      wedding.timeLabel || '',
       wedding.hotel || wedding.venue || '',
       wedding.address || ''
     ];
@@ -329,7 +343,7 @@
 
     if (dateEl && typeof CONFIG !== 'undefined' && CONFIG.wedding && CONFIG.wedding.date) {
       dateEl.textContent = formatStoryDate(CONFIG.wedding.date);
-      dateEl.setAttribute('datetime', CONFIG.wedding.date);
+      dateEl.setAttribute('datetime', weddingDateTime(CONFIG.wedding));
     }
 
     if (!target || !daysEl) return;

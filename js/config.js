@@ -12,7 +12,8 @@ const CONFIG = {
 
   wedding: {
     date: '2026-11-16',
-    time: '',
+    time: '12:00:00',
+    timeLabel: '中午 12:00',
     venue: '陶然居',
     hotel: '陶然居大酒店',
     address: '山东省临沂市兰山区陶然路163号',
@@ -233,7 +234,7 @@ const CONFIG = {
 
   share: {
     title: '许超 & 程昱 · 婚礼邀请函',
-    description: '2026.11.16 · 陶然居',
+    description: '2026.11.16 中午 · 陶然居',
     image: 'assets/share/share.jpg',
     ctaText: '分享给好友 →',
   },
