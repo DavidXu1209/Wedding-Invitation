@@ -12,10 +12,21 @@ create table if not exists wedding_private.blessing_delete_config (
 alter table wedding_private.blessing_delete_config enable row level security;
 revoke all on wedding_private.blessing_delete_config from public, anon, authenticated;
 
-insert into wedding_private.blessing_delete_config (singleton, password_hash)
-values (true, extensions.crypt('YOUR_CHOSEN_DELETE_PASSWORD_HERE', extensions.gen_salt('bf', 12)))
-on conflict (singleton) do update
-set password_hash = excluded.password_hash;
+do $$
+declare
+  chosen_password text := $password$YOUR_CHOSEN_DELETE_PASSWORD_HERE$password$;
+begin
+  if chosen_password = 'YOUR_CHOSEN_DELETE_PASSWORD_HERE'
+     or char_length(chosen_password) < 16 then
+    raise exception 'Replace the password placeholder with at least 16 characters before running this script.';
+  end if;
+
+  insert into wedding_private.blessing_delete_config (singleton, password_hash)
+  values (true, extensions.crypt(chosen_password, extensions.gen_salt('bf', 12)))
+  on conflict (singleton) do update
+  set password_hash = excluded.password_hash;
+end;
+$$;
 
 alter table public.blessings enable row level security;
 revoke update, delete on table public.blessings from public, anon, authenticated;

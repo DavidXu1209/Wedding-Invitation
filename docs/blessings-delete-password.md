@@ -5,7 +5,7 @@
 ## 首次设置
 
 1. 在 Supabase 项目的 SQL Editor 打开 [`supabase/blessings-delete-password.sql`](../supabase/blessings-delete-password.sql)。
-2. 将 `YOUR_CHOSEN_DELETE_PASSWORD_HERE` 替换为一段较长且唯一的密码，再运行整份 SQL。请不要把密码发到聊天或提交到 GitHub。
+2. 将 `chosen_password text := $password$YOUR_CHOSEN_DELETE_PASSWORD_HERE$password$;` 这一行中的占位文字替换为至少 16 个字符的唯一密码，再运行整份 SQL。只在 Supabase SQL Editor 中修改，别改本地文件；也请不要把密码发到聊天或提交到 GitHub。脚本在未替换占位文字或密码太短时会直接报错。
 3. 发布网页后，提交一条测试祝福，在手机上长按并输入密码测试；错误密码应无法删除，正确密码应在各访客页面同步删除。
 
 SQL 会保留访客公开读取和提交祝福的能力，并撤销直接删除权限。密码以 bcrypt 哈希保存在独立私有 schema；网页只在删除时把输入值发送给数据库函数校验，不会保存密码。再次运行 SQL 会替换当前管理员密码。
