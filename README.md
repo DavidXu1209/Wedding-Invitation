@@ -31,7 +31,7 @@ npx serve .
 
 ## 配置
 
-编辑 `js/config.js` 修改新人信息、婚礼详情、分享文案与照片列表。网页分享预览使用 `index.html` 的静态标题、描述和 `og:image`；微信不保证展示带图链接卡片，建议先发送邀请图片，再发送请柬链接。婚礼信息或正式网址变化时，也要同步修改这些标签。分享图位于 `assets/share/invitation.jpg`，由 `scripts/generate-share-poster.ps1` 根据婚纱照生成。
+编辑 `js/config.js` 修改新人信息、婚礼详情、分享文案与照片列表。网页分享预览使用 `index.html` 的静态标题、描述和 `og:image`；微信不保证展示带图链接卡片，建议先发送邀请图片，再发送请柬链接。婚礼信息或正式网址变化时，也要同步修改这些标签。微信发送的原图位于 `assets/share/invitation.png`。
 
 ## 开发状态
 
