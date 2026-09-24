@@ -1,7 +1,7 @@
 ﻿Add-Type -AssemblyName System.Drawing
 
 $root = Split-Path $PSScriptRoot -Parent
-$source = Join-Path $root 'assets/photos/cover.jpg'
+$source = Join-Path $root 'assets/photos/69b05db0516e58a3d5ec9a98a6cbc1a7.jpg'
 $destination = Join-Path $root 'assets/share/invitation.jpg'
 
 $canvas = [System.Drawing.Bitmap]::new(1080, 1920)
@@ -43,7 +43,12 @@ try {
     $matBrush = [System.Drawing.SolidBrush]::new($cream)
     $graphics.FillRectangle($matBrush, 104, 356, 872, 1152)
     $matBrush.Dispose()
-    $graphics.DrawImage($photo, [System.Drawing.Rectangle]::new(120, 372, 840, 1120))
+    $graphics.DrawImage(
+        $photo,
+        [System.Drawing.Rectangle]::new(120, 372, 840, 1120),
+        [System.Drawing.Rectangle]::new(200, 600, 960, 1280),
+        [System.Drawing.GraphicsUnit]::Pixel
+    )
 
     Draw-CenteredText '2026.11.16' $serifDate $cream 1538 80
     Draw-CenteredText '星期一  ·  中午 12:00' $sansDetail $muted 1623 50
