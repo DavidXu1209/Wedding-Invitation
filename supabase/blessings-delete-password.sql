@@ -16,7 +16,7 @@ do $$
 declare
   chosen_password text := $password$YOUR_CHOSEN_DELETE_PASSWORD_HERE$password$;
 begin
-  if chosen_password = 'YOUR_CHOSEN_DELETE_PASSWORD_HERE'
+  if chosen_password like 'YOUR_CHOSEN_%'
      or char_length(chosen_password) < 16 then
     raise exception 'Replace the password placeholder with at least 16 characters before running this script.';
   end if;
