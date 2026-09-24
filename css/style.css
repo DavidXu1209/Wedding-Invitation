@@ -1893,8 +1893,13 @@ body.is-envelope-opened .chapter--wishes {
   border-top: 1px solid var(--color-hairline);
 }
 
+.wish-book:empty,
 .wish-book[hidden] {
-  display: none;
+  display: none !important;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
 }
 
 .wish-book__item {

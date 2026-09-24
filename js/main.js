@@ -11,7 +11,7 @@
  * 2. 火漆印启缄：body.is-envelope-opened → 翻盖掀起后进入 02 Our Story
  * 3. 启缄手势内播放背景乐（浏览器禁止无手势自动播放）
  * 4. 相片叠放：轻扫切换正面合照，点击打开全屏预览
- * 5. 祝福写入同站祝福簿，亲友打开同一地址即可互见
+ * 5. 祝福写入 Supabase，全网实时同步到弹幕
  * 6. 落幕页写入地点、日期，并绑定高德 / 腾讯导航
  */
 (function () {
@@ -359,7 +359,7 @@
 
       if (status && parts.days !== lastSpokenDays) {
         lastSpokenDays = parts.days;
-        status.textContent = parts.days === 0 && parts.hours === 0 && parts.minutes === 0 && parts.seconds === 0
+      status.textContent = parts.days === 0 && parts.hours === 0 && parts.minutes === 0 && parts.seconds === 0
           ? '婚礼之日已至。'
           : '距离婚礼还有 ' + parts.days + ' 天。';
       }
@@ -712,30 +712,17 @@
     });
   }
 
-  var WISH_STORAGE_KEY = 'xc-cy-wishes-v2';
-  var WISH_MAX_STORED = 36;
   var WISH_TRACKS = 4;
-  var WISH_SPEED = 42;  // px/s，四条轨道同速，后一条不会追上前一条
-  var WISH_GAP = 56;    // 同轨相邻两条之间的最小像素间隔
+  var WISH_SPEED = 42;
+  var WISH_GAP = 56;
+  var SUPABASE_URL = 'https://fkufazfjglksaacehhdq.supabase.co';
+  var SUPABASE_KEY = 'sb_publishable_z2xlk_nUtRClpNNCh6bisA_PUe4huXT';
 
-  function readStoredWishes() {
-    try {
-      var parsed = JSON.parse(window.localStorage.getItem(WISH_STORAGE_KEY) || '[]');
-      return Array.isArray(parsed) ? parsed : [];
-    } catch (err) {
-      return [];
+  function createBlessingsClient() {
+    if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+      return null;
     }
-  }
-
-  function writeStoredWishes(items) {
-    try {
-      window.localStorage.setItem(
-        WISH_STORAGE_KEY,
-        JSON.stringify(items.slice(-WISH_MAX_STORED))
-      );
-    } catch (err) {
-      /* 隐私模式或配额不足时仍展示当次弹幕 */
-    }
+    return window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   }
 
   function composeWishText(name, message) {
@@ -744,73 +731,17 @@
     return who ? who + ' · ' + text : text;
   }
 
-  /** 远端未配置、或浏览器无 fetch 时返回 null，祝福退回本地存储 */
-  function wishRemote() {
-    var notes = typeof CONFIG !== 'undefined' && CONFIG.guestNotes;
-    var remote = notes && notes.remote;
-    if (!remote || !remote.enabled || !remote.endpoint || !window.fetch) return null;
-    return remote;
-  }
-
-  function wishRemoteHeaders(remote) {
-    var headers = { 'Content-Type': 'application/json' };
-
-    if (remote.apiKey) {
-      headers.apikey = remote.apiKey;
-      headers.Authorization = 'Bearer ' + remote.apiKey;
-    }
-
-    var extra = remote.headers || {};
-    Object.keys(extra).forEach(function (key) {
-      headers[key] = extra[key];
-    });
-
-    return headers;
-  }
-
-  /** 各家字段命名不同，统一成 { name, message, at } */
   function normalizeWish(raw) {
     if (!raw) return null;
 
-    var message = String(raw.message || raw.content || raw.wish || '').trim();
+    var message = String(raw.message || '').trim();
     if (!message) return null;
 
     return {
-      name: String(raw.name || raw.guestName || raw.guest_name || '').trim(),
+      id: raw.id != null ? String(raw.id) : '',
+      name: String(raw.name || '').trim(),
       message: message,
-      at: raw.at || raw.created_at || raw.createdAt || 0,
     };
-  }
-
-  function fetchRemoteWishes(remote) {
-    return window.fetch(remote.endpoint + (remote.listQuery || ''), {
-      headers: wishRemoteHeaders(remote),
-    }).then(function (res) {
-      if (!res.ok) throw new Error('remote list ' + res.status);
-      return res.json();
-    }).then(function (payload) {
-      var rows = payload && Array.isArray(payload.data) ? payload.data : payload;
-      return (Array.isArray(rows) ? rows : []).map(normalizeWish).filter(Boolean);
-    });
-  }
-
-  function postRemoteWish(remote, wish) {
-    return window.fetch(remote.endpoint, {
-      method: 'POST',
-      headers: wishRemoteHeaders(remote),
-      body: JSON.stringify({ name: wish.name, message: wish.message, at: wish.at }),
-    }).then(function (res) {
-      if (!res.ok) throw new Error('remote rejected ' + res.status);
-    });
-  }
-
-  function markWishSynced(target) {
-    writeStoredWishes(readStoredWishes().map(function (wish) {
-      if (wish && wish.at === target.at && wish.message === target.message) {
-        wish.synced = true;
-      }
-      return wish;
-    }));
   }
 
   function createWishItem(wish) {
@@ -840,67 +771,33 @@
     var nameInput = form.querySelector('[name="guestName"]');
     var messageInput = form.querySelector('[name="message"]');
     var hint = document.getElementById('wish-hint');
-
     var emptyNote = document.getElementById('danmu-empty');
-    var book = document.getElementById('wish-book');
     var emptyText = typeof CONFIG !== 'undefined' && CONFIG.guestNotes && CONFIG.guestNotes.emptyText;
-    if (emptyNote && emptyText) emptyNote.textContent = emptyText;
+    var db = createBlessingsClient();
 
-    var remote = wishRemote();
-
-    // 公开祝福以祝福簿为准；本机只作离线补发，不编造内容
     var queue = [];
     var seen = {};
     var onWishReady = null;
-    var bookOnline = !remote;
 
     function syncEmptyNote() {
       if (!emptyNote) return;
       emptyNote.hidden = queue.length > 0;
       if (queue.length) return;
-      emptyNote.textContent = remote && !bookOnline
-        ? '正在取回来宾的祝福…'
-        : (emptyText || '还没有人留下祝福，等你写下第一句');
-    }
-
-    function renderBook() {
-      if (!book) return;
-      book.textContent = '';
-      if (!queue.length) {
-        book.hidden = true;
-        return;
-      }
-
-      book.hidden = false;
-      queue.forEach(function (wish) {
-        var item = document.createElement('li');
-        item.className = 'wish-book__item';
-
-        var name = document.createElement('span');
-        name.className = 'wish-book__name';
-        name.textContent = wish.name || '来宾';
-
-        var message = document.createElement('span');
-        message.className = 'wish-book__message';
-        message.textContent = wish.message;
-
-        item.appendChild(name);
-        item.appendChild(message);
-        book.appendChild(item);
-      });
+      emptyNote.textContent = emptyText || '还没有人留下祝福，等你写下第一句';
     }
 
     function wishKey(wish) {
+      if (wish.id) return 'id:' + wish.id;
       return wish.name + '\u0001' + wish.message;
     }
 
-    /** 远端、当场提交、未同步的本机记录共用；重复内容只留一条 */
     function addWish(raw, fresh) {
       var wish = normalizeWish(raw);
       if (!wish || seen[wishKey(wish)]) return null;
       seen[wishKey(wish)] = true;
 
       var entry = {
+        id: wish.id,
         name: wish.name,
         message: wish.message,
         text: composeWishText(wish.name, wish.message),
@@ -908,57 +805,51 @@
       };
       queue.push(entry);
       syncEmptyNote();
-      renderBook();
       if (onWishReady) onWishReady(entry);
       return entry;
     }
 
-    function addLocalFallback() {
-      readStoredWishes().forEach(function (wish) {
-        addWish(wish, false);
-      });
-    }
-
-    function loadRemote() {
-      if (!remote) return Promise.resolve();
-      return fetchRemoteWishes(remote).then(function (rows) {
-        bookOnline = true;
-        rows.forEach(function (row) { addWish(row, false); });
-        readStoredWishes().forEach(function (wish) {
-          if (wish && !wish.synced) addWish(wish, false);
-        });
-        syncEmptyNote();
-      }).catch(function () {
-        bookOnline = false;
-        if (!queue.length) addLocalFallback();
-        syncEmptyNote();
-      });
-    }
-
-    /** 之前离线提交、尚未送达的祝福，联网后补发 */
-    function flushUnsynced() {
-      if (!remote) return;
-      readStoredWishes().forEach(function (wish) {
-        if (!wish || wish.synced || !wish.message) return;
-        postRemoteWish(remote, wish).then(function () {
-          markWishSynced(wish);
-        }).catch(function () {});
-      });
-    }
-
-    function startRemoteSync() {
-      if (!remote) {
-        addLocalFallback();
-        syncEmptyNote();
+    function loadBlessings() {
+      if (!db) {
+        setWishHint(hint, '祝福簿未能接通。');
         return;
       }
-      syncEmptyNote();
-      flushUnsynced();
-      loadRemote();
-      window.setInterval(function () {
-        loadRemote();
-        flushUnsynced();
-      }, remote.pollMs || 10000);
+
+      if (emptyNote) {
+        emptyNote.hidden = false;
+        emptyNote.textContent = '正在取回来宾的祝福…';
+      }
+
+      db.from('blessings')
+        .select('name, message')
+        .then(function (result) {
+          if (result.error) throw result.error;
+          (result.data || []).forEach(function (row) {
+            addWish(row, false);
+          });
+          syncEmptyNote();
+        })
+        .catch(function () {
+          if (emptyNote && !queue.length) {
+            emptyNote.hidden = false;
+            emptyNote.textContent = emptyText || '还没有人留下祝福，等你写下第一句';
+          }
+          setWishHint(hint, '祝福簿暂时无法读取。');
+        });
+    }
+
+    function listenBlessings() {
+      if (!db || typeof db.channel !== 'function') return;
+
+      db.channel('blessings-live')
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'blessings',
+        }, function (payload) {
+          addWish(payload && payload.new, true);
+        })
+        .subscribe();
     }
 
     form.addEventListener('submit', function (event) {
@@ -975,30 +866,28 @@
         return;
       }
 
-      var record = { name: name, message: message, at: Date.now(), synced: !remote };
-      if (!addWish(record, true)) {
-        setWishHint(hint, '这条祝福已经在簿上。');
+      if (!db) {
+        setWishHint(hint, '祝福簿未能接通。');
         return;
       }
 
-      var stored = readStoredWishes();
-      stored.push(record);
-      writeStoredWishes(stored);
+      setWishHint(hint, '正在送出祝福…');
 
-      form.reset();
-      if (nameInput) nameInput.classList.remove('is-invalid');
-      if (messageInput) messageInput.classList.remove('is-invalid');
-      setWishHint(hint, remote ? '祝福已送出，正在写入祝福簿…' : '祝福已留在这台手机。');
-
-      if (remote) {
-        postRemoteWish(remote, record).then(function () {
-          bookOnline = true;
-          markWishSynced(record);
-          setWishHint(hint, '祝福已送出，打开请柬的亲友都能看见。');
-        }).catch(function () {
-          setWishHint(hint, '祝福先记在这台手机。请用 npm start 打开请柬，亲友才能互见。');
+      db.from('blessings')
+        .insert({ name: name, message: message })
+        .select('name, message')
+        .then(function (result) {
+          if (result.error) throw result.error;
+          var row = result.data && result.data[0];
+          addWish(row || { name: name, message: message }, true);
+          form.reset();
+          if (nameInput) nameInput.classList.remove('is-invalid');
+          if (messageInput) messageInput.classList.remove('is-invalid');
+          setWishHint(hint, '发送成功。');
+        })
+        .catch(function () {
+          setWishHint(hint, '发送失败，请稍后再试。');
         });
-      }
     });
 
     if (prefersReducedMotion) {
@@ -1009,7 +898,8 @@
         container.insertBefore(createWishItem(wish), container.firstChild);
       };
       syncEmptyNote();
-      startRemoteSync();
+      loadBlessings();
+      listenBlessings();
       return;
     }
 
@@ -1020,7 +910,6 @@
     var pending = [];
     var tracks = [];
 
-    /** 新祝福优先；其余循环播放，且同一条不会同时出现在两条轨道上 */
     function nextWish() {
       if (pending.length) return pending.shift();
 
@@ -1034,7 +923,6 @@
       return null;
     }
 
-    /** 上一条尚未整体离开右边界时返回还需等待的毫秒数 */
     function trackBusyMs(track) {
       var last = track.last;
       if (!last || !last.parentNode) return 0;
@@ -1043,7 +931,6 @@
       return overhang > 0 ? (overhang / WISH_SPEED) * 1000 : 0;
     }
 
-    /** 投放一条弹幕，返回该轨道下一条的最早可投放间隔 */
     function launch(track, wish, progress) {
       var item = createWishItem(wish);
       item.setAttribute('data-track', String(track.index));
@@ -1055,11 +942,14 @@
 
       item.style.setProperty('--danmu-travel', travel + 'px');
       item.style.animationDuration = duration.toFixed(2) + 's';
+      item.style.webkitAnimationDuration = duration.toFixed(2) + 's';
       if (progress) {
-        item.style.animationDelay = (-duration * progress).toFixed(2) + 's';
+        var delay = (-duration * progress).toFixed(2) + 's';
+        item.style.animationDelay = delay;
+        item.style.webkitAnimationDelay = delay;
       }
       wish.live = true;
-      wish.fresh = false;  // 高亮只保留刚提交的那一程
+      wish.fresh = false;
       item.addEventListener('animationend', function () {
         wish.live = false;
         if (item.parentNode) item.parentNode.removeChild(item);
@@ -1092,21 +982,14 @@
       tracks.push({ index: i + 1, timer: 0, freeAt: 0, last: null });
     }
 
-    // 有历史祝福时错开进度铺满轨道，只有一条时让它自右侧走进来
     tracks.forEach(function (track, index) {
-      var wish = nextWish();
-      if (!wish) {
-        scheduleTrack(track, 1200 + index * 300);
-        return;
-      }
-      scheduleTrack(track, launch(track, wish, queue.length > 1 ? 0.72 - index * 0.18 : 0));
+      scheduleTrack(track, 800 + index * 280);
     });
 
-    // 刚提交的插队上屏；远端拉回来的交给轨道循环自然带出
     onWishReady = function (wish) {
-      if (!wish.fresh) return;
-
-      pending.push(wish);
+      if (wish.fresh) {
+        pending.push(wish);
+      }
 
       var target = tracks[0];
       tracks.forEach(function (track) {
@@ -1115,7 +998,8 @@
       scheduleTrack(target, Math.max(0, target.freeAt - Date.now()));
     };
 
-    startRemoteSync();
+    loadBlessings();
+    listenBlessings();
   }
 
   syncFromConfig();

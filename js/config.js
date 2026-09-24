@@ -218,18 +218,6 @@ const CONFIG = {
     submitText: '送上祝福',
     emptyText: '还没有人留下祝福，等你写下第一句',
     items: [],
-
-    // 祝福簿：亲友打开同一请柬地址即可互见。
-    // 本地 / 部署请用 `npm start`（同站 /api/wishes）。
-    // 若改用 Supabase / 云函数：GET 返回数组，POST { name, message, at }。
-    remote: {
-      enabled: true,
-      endpoint: '/api/wishes',
-      listQuery: '',
-      apiKey: '',
-      headers: {},
-      pollMs: 10000,
-    },
   },
 
   share: {
