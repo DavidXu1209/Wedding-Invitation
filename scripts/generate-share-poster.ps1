@@ -46,7 +46,7 @@ try {
     $graphics.DrawImage(
         $photo,
         [System.Drawing.Rectangle]::new(120, 372, 840, 1120),
-        [System.Drawing.Rectangle]::new(200, 600, 960, 1280),
+        [System.Drawing.Rectangle]::new(230, 600, 960, 1280),
         [System.Drawing.GraphicsUnit]::Pixel
     )
 
