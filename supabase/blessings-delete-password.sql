@@ -1,4 +1,4 @@
--- Replace the placeholder with a long, unique password before running this file.
+-- Replace the placeholder with your chosen password before running this file.
 begin;
 
 create extension if not exists pgcrypto with schema extensions;
@@ -16,9 +16,8 @@ do $$
 declare
   chosen_password text := $password$YOUR_CHOSEN_DELETE_PASSWORD_HERE$password$;
 begin
-  if chosen_password like 'YOUR_CHOSEN_%'
-     or char_length(chosen_password) < 16 then
-    raise exception 'Replace the password placeholder with at least 16 characters before running this script.';
+  if chosen_password like 'YOUR_CHOSEN_%' or chosen_password = '' then
+    raise exception 'Replace the password placeholder before running this script.';
   end if;
 
   insert into wedding_private.blessing_delete_config (singleton, password_hash)
