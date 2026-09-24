@@ -21,7 +21,7 @@ wedding-invitation/
 npm start
 ```
 
-浏览器打开 `http://localhost:3456`。祝福即时公开显示为「祝福内容 - 姓名」。管理员登录入口为 `/admin.html`；首次设置步骤见 [`docs/blessings-admin.md`](docs/blessings-admin.md)。
+浏览器打开 `http://localhost:3456`。祝福即时公开显示为「祝福 - 姓名」。完成 [`docs/blessings-delete-password.md`](docs/blessings-delete-password.md) 的一次性 Supabase 设置后，访客可长按祝福输入管理员密码进行删除。
 
 也可以使用任意静态服务器预览页面：
 

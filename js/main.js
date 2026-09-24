@@ -742,12 +742,47 @@
     };
   }
 
-  function createWishItem(wish) {
+  function createWishItem(wish, onDelete) {
     var item = document.createElement('p');
     item.className = 'danmu-item';
     if (wish.id) item.setAttribute('data-wish-id', wish.id);
     if (wish.fresh) item.classList.add('danmu-item--fresh');
     item.textContent = wish.text;
+    if (wish.id && onDelete) {
+      item.tabIndex = 0;
+      item.setAttribute('role', 'button');
+      item.setAttribute('aria-label', wish.text + '，长按或右键删除');
+      var pressTimer = 0;
+      var longPressed = false;
+
+      item.addEventListener('pointerdown', function (event) {
+        longPressed = false;
+        if (event.pointerType === 'mouse') return;
+        item.style.animationPlayState = 'paused';
+        pressTimer = window.setTimeout(function () {
+          longPressed = true;
+          onDelete(wish);
+        }, 700);
+      });
+      ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (type) {
+        item.addEventListener(type, function () {
+          window.clearTimeout(pressTimer);
+          item.style.animationPlayState = '';
+        });
+      });
+      item.addEventListener('contextmenu', function (event) {
+        event.preventDefault();
+        if (longPressed) return;
+        item.style.animationPlayState = '';
+        onDelete(wish);
+      });
+      item.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onDelete(wish);
+        }
+      });
+    }
     return item;
   }
 
@@ -869,6 +904,25 @@
       syncEmptyNote();
     }
 
+    function requestWishDeletion(wish) {
+      var password = window.prompt('请输入管理员密码');
+      if (!password) return;
+      db.rpc('delete_blessing_with_password', {
+        target_id: wish.id,
+        provided_password: password,
+      }).then(function (result) {
+        if (result.error) throw result.error;
+        if (result.data !== true) {
+          setWishHint(hint, '管理员密码错误，或这条祝福已被删除。');
+          return;
+        }
+        removeWish({ id: wish.id });
+        setWishHint(hint, '祝福已删除。');
+      }).catch(function () {
+        setWishHint(hint, '删除失败，请稍后重试。');
+      });
+    }
+
     form.addEventListener('submit', function (event) {
       event.preventDefault();
 
@@ -909,10 +963,10 @@
 
     if (prefersReducedMotion) {
       queue.forEach(function (wish) {
-        container.appendChild(createWishItem(wish));
+        container.appendChild(createWishItem(wish, requestWishDeletion));
       });
       onWishReady = function (wish) {
-        container.insertBefore(createWishItem(wish), container.firstChild);
+        container.insertBefore(createWishItem(wish, requestWishDeletion), container.firstChild);
       };
       syncEmptyNote();
       loadBlessings();
@@ -949,7 +1003,7 @@
     }
 
     function launch(track, wish, progress) {
-      var item = createWishItem(wish);
+      var item = createWishItem(wish, requestWishDeletion);
       item.setAttribute('data-track', String(track.index));
       container.appendChild(item);
 
