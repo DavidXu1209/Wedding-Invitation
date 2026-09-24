@@ -15,15 +15,15 @@ wedding-invitation/
 
 ## 本地预览
 
-祝福要让所有亲友看见时，请用同站祝福簿启动（静态目录 + `/api/wishes`）：
+祝福通过 Supabase 在所有访客之间共享；本地和线上使用同一份祝福数据。启动本地预览：
 
 ```bash
 npm start
 ```
 
-浏览器打开 `http://localhost:3456`。部署到任意能跑 Node 的主机后，亲友打开同一地址即可互见祝福。
+浏览器打开 `http://localhost:3456`。祝福即时公开显示为「祝福内容 - 姓名」。管理员登录入口为 `/admin.html`；首次设置步骤见 [`docs/blessings-admin.md`](docs/blessings-admin.md)。
 
-只看页面、不需要互相看见时，也可以直接打开 `index.html`，或：
+也可以使用任意静态服务器预览页面：
 
 ```bash
 npx serve .

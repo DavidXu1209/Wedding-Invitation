@@ -715,20 +715,18 @@
   var WISH_TRACKS = 4;
   var WISH_SPEED = 42;
   var WISH_GAP = 56;
-  var SUPABASE_URL = 'https://fkufazfjglksaacehhdq.supabase.co';
-  var SUPABASE_KEY = 'sb_publishable_z2xlk_nUtRClpNNCh6bisA_PUe4huXT';
-
   function createBlessingsClient() {
-    if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+    var settings = typeof CONFIG !== 'undefined' && CONFIG.guestNotes && CONFIG.guestNotes.supabase;
+    if (!settings || !window.supabase || typeof window.supabase.createClient !== 'function') {
       return null;
     }
-    return window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    return window.supabase.createClient(settings.url, settings.publishableKey);
   }
 
   function composeWishText(name, message) {
     var who = String(name || '').trim();
     var text = String(message || '').trim();
-    return who ? who + ' · ' + text : text;
+    return who ? text + ' - ' + who : text;
   }
 
   function normalizeWish(raw) {
@@ -747,6 +745,7 @@
   function createWishItem(wish) {
     var item = document.createElement('p');
     item.className = 'danmu-item';
+    if (wish.id) item.setAttribute('data-wish-id', wish.id);
     if (wish.fresh) item.classList.add('danmu-item--fresh');
     item.textContent = wish.text;
     return item;
@@ -821,7 +820,7 @@
       }
 
       db.from('blessings')
-        .select('name, message')
+        .select('id, name, message')
         .then(function (result) {
           if (result.error) throw result.error;
           (result.data || []).forEach(function (row) {
@@ -849,7 +848,25 @@
         }, function (payload) {
           addWish(payload && payload.new, true);
         })
+        .on('postgres_changes', {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'blessings',
+        }, function (payload) {
+          removeWish(payload && payload.old);
+        })
         .subscribe();
+    }
+
+    function removeWish(raw) {
+      if (!raw || raw.id == null) return;
+      var id = String(raw.id);
+      queue = queue.filter(function (wish) { return wish.id !== id; });
+      delete seen['id:' + id];
+      Array.prototype.forEach.call(container.querySelectorAll('[data-wish-id]'), function (item) {
+        if (item.getAttribute('data-wish-id') === id) item.remove();
+      });
+      syncEmptyNote();
     }
 
     form.addEventListener('submit', function (event) {
@@ -875,7 +892,7 @@
 
       db.from('blessings')
         .insert({ name: name, message: message })
-        .select('name, message')
+        .select('id, name, message')
         .then(function (result) {
           if (result.error) throw result.error;
           var row = result.data && result.data[0];

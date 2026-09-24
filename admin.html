@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#141310">
+  <title>祝福管理 · 许超 &amp; 程昱</title>
+  <link rel="stylesheet" href="css/fonts.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <main class="admin-shell">
+    <a class="admin-back" href="index.html#wishes">返回请柬</a>
+    <header class="admin-header">
+      <p class="admin-kicker">GUEST BLESSINGS</p>
+      <h1>祝福管理</h1>
+      <p>登录后可删除祝福。新祝福会直接公开显示。</p>
+    </header>
+
+    <p class="admin-status" id="admin-status" role="status" aria-live="polite">正在检查登录状态…</p>
+    <button class="admin-secondary admin-signout" id="admin-signout" type="button" hidden>退出当前账号</button>
+
+    <form class="admin-login" id="admin-login" hidden>
+      <label for="admin-email">管理员邮箱</label>
+      <input id="admin-email" name="email" type="email" autocomplete="email" required placeholder="输入 Supabase 登录邮箱">
+      <button type="submit">发送一次性登录链接</button>
+      <p>首次登录会创建网站管理账号；登录链接只会发送到你的邮箱。</p>
+    </form>
+
+    <section class="admin-panel" id="admin-panel" hidden aria-labelledby="admin-list-title">
+      <div class="admin-toolbar">
+        <h2 id="admin-list-title">已提交的祝福 <span id="admin-count">0</span></h2>
+        <button class="admin-secondary" id="admin-refresh" type="button">刷新</button>
+      </div>
+      <p class="admin-empty" id="admin-empty" hidden>目前还没有祝福。</p>
+      <ul class="admin-list" id="admin-list" aria-label="祝福列表"></ul>
+    </section>
+
+    <a class="admin-home" href="index.html">回到邀请函首页</a>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

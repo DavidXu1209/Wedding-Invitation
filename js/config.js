@@ -210,7 +210,11 @@ const CONFIG = {
 
   guestNotes: {
     enabled: true,
-    moderation: true,
+    moderation: false,
+    supabase: {
+      url: 'https://fkufazfjglksaacehhdq.supabase.co',
+      publishableKey: 'sb_publishable_z2xlk_nUtRClpNNCh6bisA_PUe4huXT',
+    },
     placeholder: {
       name: '留下您的姓名',
       message: '写下对新人的祝福',

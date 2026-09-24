@@ -1882,6 +1882,21 @@ body.is-envelope-opened .chapter--wishes {
   color: rgba(232, 214, 168, 0.78);
 }
 
+.wish-admin-link {
+  display: inline-block;
+  margin-top: 24px;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  color: rgba(250, 249, 246, 0.54);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.wish-admin-link:focus-visible {
+  outline: 2px solid rgba(250, 249, 246, 0.72);
+  outline-offset: 4px;
+}
+
 .wish-book {
   list-style: none;
   width: 100%;

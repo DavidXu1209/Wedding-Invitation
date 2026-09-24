@@ -21,7 +21,7 @@
 | 03 | Wedding Details | 日期、倒计时、酒店、地址、高德导航 |
 | 04 | Our Story | 爱情时间线 |
 | 05 | Gallery | 婚纱相册 |
-| 06 | Guest Notes | 来宾寄语（高级法式签名册，非弹幕） |
+| 06 | Guest Notes | 来宾祝福弹幕（访客共享，管理员可删除） |
 | 07 | Share Poster | 分享海报 + 微信分享素材 |
 
 ## 核心功能
@@ -31,7 +31,7 @@
 - 高德导航（微信 App 优先，H5 降级）
 - 爱情时间线
 - 婚纱照片 Gallery
-- Guest Notes 留言互动（审核机制预留，后端暂不实现）
+- Guest Notes 共享祝福（即时显示，管理员可删除）
 - 微信分享优化
 
 ## 技术约束
@@ -78,4 +78,4 @@
 - 传统婚庆模板视觉
 - 重型前端框架
 - RSVP 表单（以 Guest Notes 替代）
-- Guest Notes 后端（字段已预留，实现阶段再定）
+- Guest Notes 后端（Supabase 共享存储与管理员删除）
