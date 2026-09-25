@@ -11,13 +11,12 @@ $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::High
 $graphics.TextRenderingHint = [System.Drawing.Text.TextRenderingHint]::AntiAliasGridFit
 $graphics.DrawImage($photo, 0, 0, $photo.Width, $photo.Height)
 
-$gradient = [System.Drawing.Drawing2D.LinearGradientBrush]::new(
-    [System.Drawing.Rectangle]::new(0, 0, $photo.Width, 520),
-    [System.Drawing.Color]::FromArgb(200, 24, 31, 25),
-    [System.Drawing.Color]::FromArgb(0, 24, 31, 25),
-    90
-)
-$graphics.FillRectangle($gradient, 0, 0, $photo.Width, 520)
+for ($y = 0; $y -lt 600; $y++) {
+    $alpha = [int](240 * (1 - $y / 600.0))
+    $shade = [System.Drawing.SolidBrush]::new([System.Drawing.Color]::FromArgb($alpha, 24, 31, 25))
+    $graphics.FillRectangle($shade, 0, $y, $photo.Width, 1)
+    $shade.Dispose()
+}
 
 function Draw-CenteredText($value, $font, $top, $height) {
     $brush = [System.Drawing.SolidBrush]::new([System.Drawing.ColorTranslator]::FromHtml('#FFF8EB'))
@@ -29,18 +28,19 @@ function Draw-CenteredText($value, $font, $top, $height) {
     $brush.Dispose()
 }
 
-$title = [System.Drawing.Font]::new('Noto Serif SC', 59, [System.Drawing.FontStyle]::Regular, [System.Drawing.GraphicsUnit]::Pixel)
-$names = [System.Drawing.Font]::new('Noto Serif SC', 47, [System.Drawing.FontStyle]::Regular, [System.Drawing.GraphicsUnit]::Pixel)
-$date = [System.Drawing.Font]::new('Georgia', 43, [System.Drawing.FontStyle]::Regular, [System.Drawing.GraphicsUnit]::Pixel)
-$detail = [System.Drawing.Font]::new('Noto Sans SC', 28, [System.Drawing.FontStyle]::Regular, [System.Drawing.GraphicsUnit]::Pixel)
-$line = [System.Drawing.Pen]::new([System.Drawing.ColorTranslator]::FromHtml('#E8D9BD'), 1)
+$title = [System.Drawing.Font]::new('Noto Serif SC', 57, [System.Drawing.FontStyle]::Regular, [System.Drawing.GraphicsUnit]::Pixel)
+$names = [System.Drawing.Font]::new('Noto Serif SC', 62, [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Pixel)
+$date = [System.Drawing.Font]::new('Georgia', 57, [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Pixel)
+$detail = [System.Drawing.Font]::new('Noto Sans SC', 33, [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Pixel)
+$line = [System.Drawing.Pen]::new([System.Drawing.ColorTranslator]::FromHtml('#E8D9BD'), 2)
 
 try {
-    Draw-CenteredText '婚礼邀请函' $title 58 80
-    Draw-CenteredText '许超  &  程昱' $names 155 68
+    Draw-CenteredText '婚礼邀请函' $title 52 83
+    Draw-CenteredText '许超  &  程昱' $names 143 90
     $graphics.DrawLine($line, 330, 247, 545, 247)
-    Draw-CenteredText '2026.11.16' $date 261 60
-    Draw-CenteredText '中午 12:00  ·  山东临沂陶然居大酒店' $detail 333 50
+    Draw-CenteredText '2026.11.16' $date 255 74
+    Draw-CenteredText '中午 12:00' $detail 330 49
+    Draw-CenteredText '山东临沂 · 陶然居大酒店' $detail 385 50
 
     $codec = [System.Drawing.Imaging.ImageCodecInfo]::GetImageEncoders() | Where-Object MimeType -eq 'image/jpeg'
     $parameters = [System.Drawing.Imaging.EncoderParameters]::new(1)
@@ -49,7 +49,7 @@ try {
     $parameters.Dispose()
 } finally {
     $title.Dispose(); $names.Dispose(); $date.Dispose(); $detail.Dispose()
-    $line.Dispose(); $gradient.Dispose(); $graphics.Dispose(); $canvas.Dispose(); $photo.Dispose()
+    $line.Dispose(); $graphics.Dispose(); $canvas.Dispose(); $photo.Dispose()
 }
 
 Write-Output $destination
