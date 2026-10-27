@@ -486,7 +486,7 @@ body.is-lightbox-open .audio-toggle {
   width: 100%;
   margin: 0;
   padding:
-    calc(var(--flap-depth) + 40px)
+    calc(var(--flap-depth) + 94px)
     24px
     calc(20px + var(--safe-bottom));
   text-align: center;
@@ -704,6 +704,12 @@ body.is-lightbox-open .audio-toggle {
 }
 
 .cover__seal-hint {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  transform: translateX(-50%);
   font-family: var(--font-body);
   font-size: 15px;
   font-weight: 600;
@@ -714,7 +720,7 @@ body.is-lightbox-open .audio-toggle {
   border: 1px solid rgba(255, 248, 235, 0.4);
   border-radius: 24px;
   background: rgba(24, 31, 25, 0.72);
-  pointer-events: none;
+  pointer-events: auto;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.4);
 }
 
@@ -792,7 +798,7 @@ body.is-envelope-opened .audio-toggle {
   }
 
   .cover-content {
-    padding-top: calc(var(--flap-depth) + 40px);
+    padding-top: calc(var(--flap-depth) + 94px);
     padding-bottom: calc(18px + var(--safe-bottom));
   }
 
