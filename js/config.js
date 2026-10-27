@@ -227,7 +227,7 @@ const CONFIG = {
   share: {
     title: '许超 & 程昱 · 婚礼邀请函',
     description: '2026年11月16日中午12:00 · 山东临沂陶然居大酒店',
-    image: 'assets/share/invitation-card.jpg',
+    image: 'assets/share/wechat-thumb-v1.jpg',
     ctaText: '分享给好友 →',
   },
 
