@@ -6,14 +6,23 @@
   <meta name="description" content="许超与程昱诚邀您参加婚礼 · 2026年11月16日中午12:00 · 山东临沂陶然居大酒店">
   <title>许超 &amp; 程昱 · 婚礼邀请函</title>
   <link rel="canonical" href="https://chaoyu-wedding.asia/">
+  <link rel="icon" type="image/jpeg" href="/assets/share/invitation-card.jpg">
+  <link rel="image_src" href="https://chaoyu-wedding.asia/assets/share/invitation-card.jpg">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="许超 &amp; 程昱的婚礼邀请函">
   <meta property="og:title" content="许超 &amp; 程昱 · 婚礼邀请函">
   <meta property="og:description" content="2026年11月16日中午12:00 · 山东临沂陶然居大酒店 · 诚邀您见证我们的婚礼">
   <meta property="og:url" content="https://chaoyu-wedding.asia/">
   <meta property="og:image" content="https://chaoyu-wedding.asia/assets/share/invitation-card.jpg">
+  <meta property="og:image:secure_url" content="https://chaoyu-wedding.asia/assets/share/invitation-card.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="875">
+  <meta property="og:image:height" content="1431">
   <meta property="og:image:alt" content="许超与程昱的婚礼邀请图片">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="许超 &amp; 程昱 · 婚礼邀请函">
+  <meta name="twitter:description" content="2026年11月16日中午12:00 · 山东临沂陶然居大酒店">
+  <meta name="twitter:image" content="https://chaoyu-wedding.asia/assets/share/invitation-card.jpg">
   <link rel="preload" href="assets/fonts/playfair-display-latin-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/great-vibes-latin-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/jost-latin-300.woff2" as="font" type="font/woff2" crossorigin>
@@ -22,6 +31,8 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <!-- 为读取网页首图的分享预览提供邀请封面。 -->
+  <img src="https://chaoyu-wedding.asia/assets/share/invitation-card.jpg" width="300" height="491" alt="" aria-hidden="true" style="position:absolute;left:-10000px;top:0;pointer-events:none" decoding="async">
   <audio id="bgm" preload="auto" playsinline webkit-playsinline></audio>
   <button class="audio-toggle" type="button" aria-pressed="false" aria-label="关闭背景音乐" hidden>
     <span class="audio-toggle__mark" aria-hidden="true">♪</span>
@@ -79,7 +90,7 @@
               <p class="venue-sub">We cordially invite you to celebrate with us</p>
             </div>
 
-            <p class="cover__seal-hint">轻触启缄</p>
+            <p class="cover__seal-hint" id="cover-open-hint">点击红色印章，打开请柬</p>
           </div>
         </div>
 
@@ -87,7 +98,7 @@
           <div class="cover__flap-plane" aria-hidden="true"></div>
           <span class="cover__flap-crease" aria-hidden="true"></span>
           <p class="cover__eyebrow">Save the Date</p>
-          <button class="wax-seal" type="button" aria-label="轻触启缄，开启请柬">
+          <button class="wax-seal" type="button" aria-label="点击红色印章，打开请柬" aria-describedby="cover-open-hint">
             <span class="cover__seal-wax" aria-hidden="true">
               <span class="cover__seal-monogram">X<i>&amp;</i>C</span>
             </span>

@@ -705,11 +705,15 @@ body.is-lightbox-open .audio-toggle {
 
 .cover__seal-hint {
   font-family: var(--font-body);
-  font-size: 8px;
-  font-weight: 300;
-  letter-spacing: var(--tracking-label);
-  color: rgba(250, 249, 246, 0.62);
-  padding-left: var(--tracking-label);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.6;
+  letter-spacing: 0.08em;
+  color: #fff8eb;
+  padding: 8px 16px;
+  border: 1px solid rgba(255, 248, 235, 0.4);
+  border-radius: 24px;
+  background: rgba(24, 31, 25, 0.72);
   pointer-events: none;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.4);
 }
