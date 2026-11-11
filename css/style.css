@@ -977,6 +977,25 @@ body.is-envelope-opened .couple {
   padding-left: var(--tracking-display);
 }
 
+/* 中文主标题「致谢」+ 英文小字陪衬 */
+#story .section-title {
+  margin-bottom: 14px;
+  font-size: 20px;
+  letter-spacing: 0.6em;
+  padding-left: 0.6em;
+  text-transform: none;
+}
+
+.thanks__kicker {
+  margin: 0 0 40px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-style: italic;
+  letter-spacing: 0.14em;
+  text-align: center;
+  color: rgba(212, 175, 55, 0.78);
+}
+
 /* ── 致谢字幕：居中短句，段间金色短线，进入视口后逐行淡入 ── */
 .thanks {
   max-width: 320px;
@@ -989,7 +1008,7 @@ body.is-envelope-opened .couple {
   display: block;
   width: 64px;
   height: auto;
-  margin: -24px auto 44px;
+  margin: 0 auto 44px;
   fill: none;
   stroke: var(--color-accent-gold);
   stroke-width: 1.1;
@@ -1001,11 +1020,11 @@ body.is-envelope-opened .couple {
 .thanks__stanza {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 400;
-  line-height: 2.35;
+  line-height: 2.3;
   letter-spacing: 0.12em;
-  color: rgba(250, 249, 246, 0.8);
+  color: rgba(250, 249, 246, 0.9);
 }
 
 .thanks__line {

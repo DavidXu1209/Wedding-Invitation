@@ -240,6 +240,11 @@
 
     var title = document.getElementById('story-title');
     if (title && thanks.title) title.textContent = thanks.title;
+    var kicker = document.getElementById('thanks-kicker');
+    if (kicker) {
+      kicker.textContent = thanks.kicker || '';
+      kicker.hidden = !thanks.kicker;
+    }
 
     body.textContent = '';
     var groups = (thanks.stanzas || []).slice();
