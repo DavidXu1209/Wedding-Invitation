@@ -27,8 +27,8 @@
   <link rel="preload" href="assets/fonts/great-vibes-latin-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/jost-latin-300.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/noto-serif-sc-subset.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/fonts.css?v=20261110-gallery">
-  <link rel="stylesheet" href="css/style.css?v=20261110-gallery">
+  <link rel="stylesheet" href="css/fonts.css?v=20261111-thanks">
+  <link rel="stylesheet" href="css/style.css?v=20261111-thanks">
 </head>
 <body>
   <!-- 为读取网页首图的分享预览提供邀请封面。 -->
@@ -108,96 +108,19 @@
 
     </section>
 
-    <!-- 02 Our Story · 暗调流光 · 图文交错 -->
+    <!-- 02 致谢字幕 · 暗调流光 · 逐行淡入 -->
     <section id="story" class="chapter chapter--story" aria-labelledby="story-title">
-      <h2 id="story-title" class="section-title">OUR STORY</h2>
-      <ol class="timeline" id="timeline">
-        <li class="timeline__node" id="story-12-08">
-          <div class="timeline__copy">
-            <time class="timeline__date" datetime="2023-12-08">2023.12.08</time>
-            <h3 class="timeline__en">First Glance</h3>
-            <p class="timeline__zh">初遇·轨迹交汇的起点</p>
-          </div>
-          <figure class="timeline__frame">
-            <img
-              src="assets/photos/7bdbbfab505c9f39cfc1f29134bc9ac9.jpg"
-              alt="许超与程昱，初遇的温柔"
-              width="480"
-              height="640"
-              loading="lazy"
-              decoding="async"
-            >
-          </figure>
-        </li>
-        <li class="timeline__node" id="story-12-20">
-          <div class="timeline__copy">
-            <time class="timeline__date" datetime="2023-12-20">2023.12.20</time>
-            <h3 class="timeline__en">Mutual Resonance</h3>
-            <p class="timeline__zh">共鸣·心意相通的瞬息</p>
-          </div>
-          <figure class="timeline__frame">
-            <img
-              src="assets/photos/69b726317e5dbdc58b3fa05ded4743fa.jpg"
-              alt="许超与程昱相视牵手"
-              width="480"
-              height="640"
-              loading="lazy"
-              decoding="async"
-            >
-          </figure>
-        </li>
-        <li class="timeline__node timeline__node--stack timeline__node--has-photo" id="story-10-04">
-          <div class="timeline__copy">
-            <time class="timeline__date" datetime="2025-10-04">2025.10.04</time>
-            <h3 class="timeline__en">The Pledge</h3>
-            <p class="timeline__zh">许诺·向彼此走近的契约</p>
-          </div>
-          <figure class="timeline__frame">
-            <img
-              src="assets/photos/1160c7043c0fb8987d4b9e5234488d2c.jpg"
-              alt="程昱走向花廊下的许超"
-              width="480"
-              height="640"
-              loading="lazy"
-              decoding="async"
-            >
-          </figure>
-        </li>
-        <li class="timeline__node timeline__node--stack timeline__node--has-photo" id="story-12-18">
-          <div class="timeline__copy">
-            <time class="timeline__date" datetime="2025-12-18">2025.12.18</time>
-            <h3 class="timeline__en">Boundless Union</h3>
-            <p class="timeline__zh">结契·法律与爱意的双重署名</p>
-          </div>
-          <figure class="timeline__frame timeline__frame--landscape">
-            <img
-              src="assets/photos/dinghun.jpg"
-              alt="许超与程昱领证"
-              width="480"
-              height="320"
-              loading="lazy"
-              decoding="async"
-            >
-          </figure>
-        </li>
-        <li class="timeline__node timeline__node--wedding timeline__node--stack timeline__node--has-photo" id="story-11-16">
-          <div class="timeline__copy">
-            <time class="timeline__date" datetime="2026-11-16">2026.11.16</time>
-            <h3 class="timeline__en">The Celebration</h3>
-            <p class="timeline__zh">永恒·共赴余生的起点</p>
-          </div>
-          <figure class="timeline__frame">
-            <img
-              src="assets/photos/2ec70a7c7d7f16f02c6e67c323d47a91.jpg"
-              alt="许超与程昱的婚纱大片"
-              width="480"
-              height="640"
-              loading="lazy"
-              decoding="async"
-            >
-          </figure>
-        </li>
-      </ol>
+      <h2 id="story-title" class="section-title" data-config="thanks-title">WITH GRATITUDE</h2>
+      <div class="thanks" id="thanks">
+        <svg class="thanks__bow" viewBox="0 0 120 80" aria-hidden="true" focusable="false">
+          <path d="M60 30 C48 13 22 7 17 21 C13 35 40 38 60 30 Z"/>
+          <path d="M60 30 C72 13 98 7 103 21 C107 35 80 38 60 30 Z"/>
+          <path d="M57 33 C51 46 43 58 33 72"/>
+          <path d="M63 33 C69 46 77 58 87 72"/>
+          <ellipse cx="60" cy="31" rx="4.5" ry="5.5"/>
+        </svg>
+        <div class="thanks__body" id="thanks-body"></div>
+      </div>
 
       <!-- 03 Countdown · 倒计时与大日子闭环 -->
       <aside class="countdown" id="countdown" aria-label="婚礼倒计时">
@@ -369,7 +292,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=20261110-gallery"></script>
-  <script src="js/main.js?v=20261110-gallery"></script>
+  <script src="js/config.js?v=20261111-thanks"></script>
+  <script src="js/main.js?v=20261111-thanks"></script>
 </body>
 </html>

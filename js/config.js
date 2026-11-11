@@ -32,50 +32,42 @@ const CONFIG = {
     message: 'Looking forward to celebrating with you',
   },
 
-  timeline: [
-    {
-      date: '2023-12-08',
-      title: 'First Glance',
-      caption: '初遇·轨迹交汇的起点',
-      photo: 'assets/photos/7bdbbfab505c9f39cfc1f29134bc9ac9.jpg',
-      photoAlt: '许超与程昱，初遇的温柔',
-      frame: 'glance',
-    },
-    {
-      date: '2023-12-20',
-      title: 'Mutual Resonance',
-      caption: '共鸣·心意相通的瞬息',
-      photo: 'assets/photos/69b726317e5dbdc58b3fa05ded4743fa.jpg',
-      photoAlt: '许超与程昱相视牵手',
-      frame: 'resonance',
-    },
-    {
-      date: '2025-10-04',
-      title: 'The Pledge',
-      caption: '许诺·向彼此走近的契约',
-      photo: 'assets/photos/1160c7043c0fb8987d4b9e5234488d2c.jpg',
-      photoAlt: '程昱走向花廊下的许超',
-      stack: true,
-    },
-    {
-      date: '2025-12-18',
-      title: 'Boundless Union',
-      caption: '结契·法律与爱意的双重署名',
-      photo: 'assets/photos/dinghun.jpg',
-      photoAlt: '许超与程昱领证',
-      frame: 'landscape',
-      stack: true,
-    },
-    {
-      date: '2026-11-16',
-      title: 'The Celebration',
-      caption: '永恒·共赴余生的起点',
-      photo: 'assets/photos/2ec70a7c7d7f16f02c6e67c323d47a91.jpg',
-      photoAlt: '许超与程昱的婚纱大片',
-      stack: true,
-      highlight: true,
-    },
-  ],
+  /* 02 致谢字幕：每段为一组，段内每行一句；滚动到可见时逐行淡入 */
+  thanks: {
+    title: 'With Gratitude',
+    stanzas: [
+      [
+        '从相识的那天起',
+        '我们走过许多寻常的日子',
+        '也一起看过不寻常的风景',
+        '才慢慢懂得',
+        '好的感情，是两个人一起长大',
+      ],
+      [
+        '谢谢爸爸妈妈',
+        '把我们养大，又放手让我们去爱',
+        '无论走多远',
+        '家永远是我们回头就能看见的灯',
+      ],
+      [
+        '谢谢一路相伴的亲友',
+        '在每一个重要的时刻',
+        '都有你们在身旁',
+        '那些笑声与祝福，我们一直记得',
+      ],
+      [
+        '十一月十六日',
+        '我们将许下一生的约定',
+        '诚邀最挚爱的你们',
+        '来见证这份平凡而珍贵的幸福',
+      ],
+    ],
+    closing: [
+      '谢谢你们',
+      '成为我们故事里最温暖的一部分',
+    ],
+    signature: '许超 & 程昱',
+  },
 
   prologue: {
     coverImage: 'assets/photos/cover.jpg',

@@ -1,13 +1,13 @@
 /**
  * 婚礼邀请函 — 入口脚本
  * 阶段 1：Cover · 序章·叩门
- * 阶段 2：Our Story · 暗调流光时间线
+ * 阶段 2：致谢字幕 · 逐行淡入
  * 阶段 3：Countdown · 倒计时与大日子闭环
  * 阶段 4：Gallery · 独立影像相片簿
  * 阶段 5：Wishes · 弹幕祝福互动
  * 阶段 6：Venue · 酒店导航与温馨落幕
  *
- * 1. 用 CONFIG 覆盖封面 [data-config] 文案，并渲染时间线
+ * 1. 用 CONFIG 覆盖封面 [data-config] 文案，并渲染致谢字幕
  * 2. 火漆印启缄：body.is-envelope-opened → 翻盖掀起后进入 02 Our Story
  * 3. 启缄手势内播放背景乐（浏览器禁止无手势自动播放）
  * 4. 相片叠放：轻扫切换正面合照，点击打开全屏预览
@@ -46,11 +46,6 @@
     var date = wedding && wedding.date ? wedding.date : '';
     var clock = wedding && wedding.time ? String(wedding.time).slice(0, 8) : '';
     return clock ? date + 'T' + clock : date;
-  }
-
-  function storyNodeId(isoDate) {
-    var parts = String(isoDate || '').split('-');
-    return parts.length === 3 ? 'story-' + parts[1] + '-' + parts[2] : '';
   }
 
   function syncFromConfig() {
@@ -237,61 +232,67 @@
     });
   }
 
-  function renderStory() {
-    var list = document.getElementById('timeline');
-    if (!list || typeof CONFIG === 'undefined' || !CONFIG.timeline) return;
+  /** 致谢字幕：按段渲染，段落进入视口后逐行淡入 */
+  function renderThanks() {
+    var body = document.getElementById('thanks-body');
+    var thanks = typeof CONFIG !== 'undefined' ? CONFIG.thanks : null;
+    if (!body || !thanks) return;
 
-    list.textContent = '';
+    var title = document.getElementById('story-title');
+    if (title && thanks.title) title.textContent = thanks.title;
 
-    CONFIG.timeline.forEach(function (item) {
-      var li = document.createElement('li');
-      li.className = 'timeline__node';
-      var nodeId = storyNodeId(item.date);
-      if (nodeId) li.id = nodeId;
-      if (item.highlight) li.classList.add('timeline__node--wedding');
-      if (item.stack || item.frame === 'landscape' || !item.photo) {
-        li.classList.add('timeline__node--stack');
+    body.textContent = '';
+    var groups = (thanks.stanzas || []).slice();
+    if (thanks.closing && thanks.closing.length) groups.push(thanks.closing);
+
+    groups.forEach(function (lines, index) {
+      var stanza = document.createElement('p');
+      stanza.className = 'thanks__stanza';
+      if (index === groups.length - 1 && thanks.closing) {
+        stanza.classList.add('thanks__stanza--closing');
       }
-      if (item.photo) li.classList.add('timeline__node--has-photo');
+      lines.forEach(function (text, lineIndex) {
+        var line = document.createElement('span');
+        line.className = 'thanks__line';
+        line.style.setProperty('--line-index', String(lineIndex));
+        line.textContent = text;
+        stanza.appendChild(line);
+      });
+      body.appendChild(stanza);
 
-      var copy = document.createElement('div');
-      copy.className = 'timeline__copy';
-
-      var time = document.createElement('time');
-      time.className = 'timeline__date';
-      if (item.date) time.setAttribute('datetime', item.date);
-      time.textContent = formatStoryDate(item.date);
-
-      var en = document.createElement('h3');
-      en.className = 'timeline__en';
-      en.textContent = item.title || '';
-
-      var zh = document.createElement('p');
-      zh.className = 'timeline__zh';
-      zh.textContent = item.caption || '';
-
-      copy.appendChild(time);
-      copy.appendChild(en);
-      copy.appendChild(zh);
-      li.appendChild(copy);
-
-      if (item.photo) {
-        var figure = document.createElement('figure');
-        figure.className = 'timeline__frame';
-        if (item.frame) figure.classList.add('timeline__frame--' + item.frame);
-
-        var img = document.createElement('img');
-        img.src = item.photo;
-        img.alt = item.photoAlt || '';
-        img.loading = 'lazy';
-        img.decoding = 'async';
-
-        figure.appendChild(img);
-        li.appendChild(figure);
+      if (index < groups.length - 1) {
+        var gap = document.createElement('span');
+        gap.className = 'thanks__divider';
+        gap.setAttribute('aria-hidden', 'true');
+        body.appendChild(gap);
       }
-
-      list.appendChild(li);
     });
+
+    if (thanks.signature) {
+      var sign = document.createElement('p');
+      sign.className = 'thanks__stanza thanks__signature';
+      var signLine = document.createElement('span');
+      signLine.className = 'thanks__line';
+      signLine.textContent = thanks.signature;
+      sign.appendChild(signLine);
+      body.appendChild(sign);
+    }
+
+    var stanzas = body.querySelectorAll('.thanks__stanza');
+    if (prefersReducedMotion || !('IntersectionObserver' in window)) {
+      Array.prototype.forEach.call(stanzas, function (el) { el.classList.add('is-visible'); });
+      return;
+    }
+
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);
+      });
+    }, { rootMargin: '0px 0px -12% 0px', threshold: 0.2 });
+
+    Array.prototype.forEach.call(stanzas, function (el) { observer.observe(el); });
   }
 
   function padDigits(value, width) {
@@ -1074,7 +1075,7 @@
   }
 
   syncFromConfig();
-  renderStory();
+  renderThanks();
   initCountdown();
   initGallery();
   initAudio();
