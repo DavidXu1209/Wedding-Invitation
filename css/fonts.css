@@ -77,7 +77,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('../assets/fonts/noto-serif-sc-subset.woff2?v=20261111b') format('woff2');
+  src: url('../assets/fonts/noto-serif-sc-subset.woff2?v=20261111c') format('woff2');
 }
 
 @font-face {
@@ -85,7 +85,7 @@
   font-style: normal;
   font-weight: 300;
   font-display: swap;
-  src: url('../assets/fonts/noto-sans-sc-subset.woff2?v=20261111b') format('woff2');
+  src: url('../assets/fonts/noto-sans-sc-subset.woff2?v=20261111c') format('woff2');
 }
 
 @font-face {
@@ -93,5 +93,5 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('../assets/fonts/noto-sans-sc-subset.woff2?v=20261111b') format('woff2');
+  src: url('../assets/fonts/noto-sans-sc-subset.woff2?v=20261111c') format('woff2');
 }
