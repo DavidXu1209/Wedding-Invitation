@@ -1,13 +1,13 @@
 /**
  * 婚礼邀请函 — 入口脚本
  * 阶段 1：Cover · 序章·叩门
- * 阶段 2：致谢字幕 · 逐行淡入
+ * 阶段 2：欢迎字幕 · 逐行淡入
  * 阶段 3：Countdown · 倒计时与大日子闭环
  * 阶段 4：Gallery · 独立影像相片簿
  * 阶段 5：Wishes · 弹幕祝福互动
  * 阶段 6：Venue · 酒店导航与温馨落幕
  *
- * 1. 用 CONFIG 覆盖封面 [data-config] 文案，并渲染致谢字幕
+ * 1. 用 CONFIG 覆盖封面 [data-config] 文案，并渲染欢迎字幕
  * 2. 火漆印启缄：body.is-envelope-opened → 翻盖掀起后进入 02 Our Story
  * 3. 启缄手势内播放背景乐（浏览器禁止无手势自动播放）
  * 4. 相片叠放：轻扫切换正面合照，点击打开全屏预览
@@ -232,7 +232,7 @@
     });
   }
 
-  /** 致谢字幕：按段渲染，段落进入视口后逐行淡入 */
+  /** 欢迎字幕：按段渲染，段落进入视口后逐行淡入 */
   function renderThanks() {
     var body = document.getElementById('thanks-body');
     var thanks = typeof CONFIG !== 'undefined' ? CONFIG.thanks : null;
@@ -240,11 +240,6 @@
 
     var title = document.getElementById('story-title');
     if (title && thanks.title) title.textContent = thanks.title;
-    var kicker = document.getElementById('thanks-kicker');
-    if (kicker) {
-      kicker.textContent = thanks.kicker || '';
-      kicker.hidden = !thanks.kicker;
-    }
 
     body.textContent = '';
     var groups = (thanks.stanzas || []).slice();

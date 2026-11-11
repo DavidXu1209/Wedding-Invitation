@@ -943,7 +943,7 @@ body.is-envelope-opened .couple {
 }
 
 /* ===================================================
-   02 致谢字幕 · 逐行淡入
+   02 欢迎字幕 · 逐行淡入
    =================================================== */
 
 .chapter--story {
@@ -951,9 +951,7 @@ body.is-envelope-opened .couple {
   position: relative;
   z-index: 1;
   width: 100%;
-  min-height: 100vh;
-  min-height: 100dvh;
-  padding: 88px 20px calc(72px + var(--safe-bottom));
+  padding: 88px 20px 8px;
   color: var(--color-cream);
   background: transparent;
   opacity: 0;
@@ -977,30 +975,21 @@ body.is-envelope-opened .couple {
   padding-left: var(--tracking-display);
 }
 
-/* 中文主标题「致谢」+ 英文小字陪衬 */
+/* 欢迎标题：参考纸质请柬的衬线标题，不做全大写 */
 #story .section-title {
-  margin-bottom: 14px;
-  font-size: 20px;
-  letter-spacing: 0.6em;
-  padding-left: 0.6em;
+  margin-bottom: 36px;
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  padding-left: 0.05em;
   text-transform: none;
 }
 
-.thanks__kicker {
-  margin: 0 0 40px;
-  font-family: var(--font-display);
-  font-size: 12px;
-  font-style: italic;
-  letter-spacing: 0.14em;
-  text-align: center;
-  color: rgba(212, 175, 55, 0.78);
-}
-
-/* ── 致谢字幕：居中短句，段间金色短线，进入视口后逐行淡入 ── */
+/* ── 欢迎字幕：居中短句，段间金色短线，进入视口后逐行淡入 ── */
 .thanks {
   max-width: 320px;
   margin: 0 auto;
-  padding: 0 0 80px;
+  padding: 0;
   text-align: center;
 }
 
@@ -1023,7 +1012,7 @@ body.is-envelope-opened .couple {
   font-size: 15px;
   font-weight: 400;
   line-height: 2.3;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   color: rgba(250, 249, 246, 0.9);
 }
 
@@ -1062,13 +1051,29 @@ body.is-envelope-opened .couple {
   color: var(--color-accent-gold);
 }
 
-.chapter--story.is-revealed .countdown {
-  animation: story-in 800ms var(--ease-out) 520ms both;
+/* 倒计时：画廊之后单独成章，随启缄一起淡入 */
+.chapter--countdown {
+  --color-hairline: var(--color-hairline-light);
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 24px 20px 72px;
+  color: var(--color-cream);
+  opacity: 0;
+}
+
+body.is-envelope-opened .chapter--countdown {
+  opacity: 1;
+  transition: opacity 720ms 200ms var(--ease-out);
+}
+
+.chapter--countdown .countdown {
+  margin-top: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .chapter--story,
-  .chapter--story.is-revealed .countdown {
+  .chapter--countdown {
     animation: none;
     transition: none;
     opacity: 1;

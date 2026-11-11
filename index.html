@@ -108,10 +108,9 @@
 
     </section>
 
-    <!-- 02 致谢字幕 · 暗调流光 · 逐行淡入 -->
+    <!-- 02 欢迎字幕 · 暗调流光 · 逐行淡入 -->
     <section id="story" class="chapter chapter--story" aria-labelledby="story-title">
-      <h2 id="story-title" class="section-title">致谢</h2>
-      <p class="thanks__kicker" id="thanks-kicker">With Gratitude</p>
+      <h2 id="story-title" class="section-title">Welcome to our wedding</h2>
       <div class="thanks" id="thanks">
         <svg class="thanks__bow" viewBox="0 0 120 80" aria-hidden="true" focusable="false">
           <path d="M60 30 C48 13 22 7 17 21 C13 35 40 38 60 30 Z"/>
@@ -123,7 +122,21 @@
         <div class="thanks__body" id="thanks-body"></div>
       </div>
 
-      <!-- 03 Countdown · 倒计时与大日子闭环 -->
+    </section>
+
+    <!-- 04 Gallery · 叠放相册 -->
+    <section id="gallery" class="chapter chapter--gallery" aria-labelledby="gallery-title">
+      <h2 id="gallery-title" class="section-title">画廊</h2>
+      <p class="visually-hidden">左右轻扫切换合照，点击正面照片可放大预览。</p>
+
+      <div class="gallery-deck">
+        <div class="gallery-stack" id="gallery-stack" role="group" aria-label="婚纱合照"></div>
+      </div>
+      <p class="gallery-index" id="gallery-index" aria-live="polite"></p>
+    </section>
+
+    <!-- 03 Countdown · 画廊之后单独成章 -->
+    <section class="chapter chapter--countdown">
       <aside class="countdown" id="countdown" aria-label="婚礼倒计时">
         <p class="countdown__kicker">Countdown to our day</p>
         <p class="countdown__verse">光阴轻叩，只待与你赴约</p>
@@ -162,17 +175,6 @@
         <p class="countdown__epilogue">The day we begin forever</p>
         <p class="countdown__monogram" aria-hidden="true">X <i>&amp;</i> C</p>
       </aside>
-    </section>
-
-    <!-- 04 Gallery · 叠放相册 -->
-    <section id="gallery" class="chapter chapter--gallery" aria-labelledby="gallery-title">
-      <h2 id="gallery-title" class="section-title">画廊</h2>
-      <p class="visually-hidden">左右轻扫切换合照，点击正面照片可放大预览。</p>
-
-      <div class="gallery-deck">
-        <div class="gallery-stack" id="gallery-stack" role="group" aria-label="婚纱合照"></div>
-      </div>
-      <p class="gallery-index" id="gallery-index" aria-live="polite"></p>
     </section>
 
     <!-- 05 Wishes · 弹幕祝福互动区 -->
